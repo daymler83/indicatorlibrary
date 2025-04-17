@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Indicator Library</title>
+    <!-- ✅ Bootstrap CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+    <div class="container mt-5">
+        <h1 class="mb-4 text-center">📊 Indicator Library System</h1>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover table-striped">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Owner</th>
+                        <th>Status</th>
+                        <th>Version</th>
+                        <th>Sector</th>
+                        <th>Dimension</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for indicator in indicators %}
+                    <tr>
+                        <td>{{ indicator.id }}</td>
+                        <td>{{ indicator.name }}</td>
+                        <td>{{ indicator.owner }}</td>
+                        <td>{{ indicator.status }}</td>
+                        <td>{{ indicator.version }}</td>
+                        <td>{{ indicator.sector }}</td>
+                        <td>{{ indicator.dimension }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,6 @@
+id,name,owner,status,version,dimension,sector
+IND001,Unemployment Rate,Labor Statistics Team,Active,1.0,Labor Market,Employment
+IND002,GDP Growth Rate,National Accounts,Active,2.1,Economy,Macroeconomics
+IND003,Energy Access Rate,Energy Unit,Inactive,1.3,Infrastructure,Energy
+IND004,School Enrollment Rate,Education Dept,Active,1.5,Social,Education
+IND005,CO2 Emissions per Capita,Environment Dept,Active,1.1,Environment,Climate

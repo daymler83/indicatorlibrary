@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Indicator Library System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-green: #4CAF50;
+            --light-green: #E8F5E9;
+            --dark-green: #388E3C;
+            --accent-green: #81C784;
+        }
+        
+        body {
+            background-color: #f8faf8;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+        }
+        
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+            color: white;
+            padding: 1.5rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .section-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 1.25rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(0, 0, 0, 0.03);
+            height: 100%;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-left: 4px solid var(--primary-green);
+        }
+        
+        .section-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+        }
+        
+        .section-title {
+            font-weight: 600;
+            font-size: 1.25rem;
+            margin-bottom: 1.25rem;
+            color: var(--primary-green);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--light-green);
+        }
+        
+        .indicator-item {
+            transition: all 0.2s ease;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #f0f0f0;
+            border-radius: 6px;
+        }
+        
+        .indicator-item:hover {
+            background-color: var(--light-green);
+        }
+        
+        .indicator-item:last-child {
+            border-bottom: none;
+        }
+        
+        .status-badge {
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 0.35rem 0.75rem;
+            border-radius: 12px;
+        }
+        
+        .search-box {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        
+        .search-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+        
+        .upload-btn {
+            background-color: var(--primary-green);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        .upload-btn:hover {
+            background-color: var(--dark-green);
+            transform: translateY(-1px);
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+        }
+        
+        .data-table {
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .data-table thead th {
+            background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+            color: white;
+            font-weight: 500;
+            position: sticky;
+            top: 0;
+        }
+        
+        .data-table tbody tr {
+            transition: background-color 0.2s ease;
+        }
+        
+        .data-table tbody tr:hover {
+            background-color: var(--light-green);
+        }
+        
+        .modal-header {
+            background-color: var(--primary-green);
+            color: white;
+        }
+        
+        .modal-content {
+            border: none;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .modal-body p {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f0f0f0;
+            margin-bottom: 0.5rem;
+        }
+        
+        .modal-body p:last-child {
+            border-bottom: none;
+        }
+        
+        .form-select, .form-control {
+            border: 1px solid #ddd;
+            transition: all 0.3s ease;
+        }
+        
+        .form-select:focus, .form-control:focus {
+            border-color: var(--accent-green);
+            box-shadow: 0 0 0 0.25rem rgba(76, 175, 80, 0.15);
+        }
+        
+        .upload-form {
+            background-color: var(--light-green);
+            padding: 1.25rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .accordion-item {
+            border-radius: 6px !important;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+        
+        .accordion-button:not(.collapsed) {
+            background-color: var(--light-green);
+            color: var(--dark-green);
+        }
+        
+        .btn-outline-primary {
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: var(--accent-green);
+            border-color: var(--accent-green);
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-header {
+                border-radius: 0;
+                padding: 1rem 0;
+            }
+            
+            .section-card {
+                margin-bottom: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Rest of your HTML remains exactly the same -->
+    <div class="dashboard-header">
+        <div class="container">
+            <h2 class="mb-0"><i class="fas fa-chart-line me-2"></i>Indicator Library System Dashboard</h2>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row g-4">
+            <!-- Indicator Library -->
+            <div class="col-md-4">
+                <div class="section-card">
+                    <div class="section-title"><i class="fas fa-book me-2"></i>Indicator Library</div>
+
+                    <form class="row mb-3" id="filter-form">
+                        <div class="col-md-12 mb-2">
+                            <div class="search-box">
+                                <input type="text" id="searchInput" class="form-control" placeholder="Search by name...">
+                                <i class="fas fa-search search-icon"></i>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <select class="form-select" id="sectorFilter">
+                                <option value="">All Sectors</option>
+                                {% for sector in sectors.keys() %}
+                                    <option value="{{ sector }}">{{ sector }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <select class="form-select" id="statusFilter">
+                                <option value="">All Statuses</option>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </form>
+                    
+                    <div class="accordion" id="indicatorAccordion">
+                        {% set sectors = {} %}
+                        {% for indicator in indicators %}
+                            {% set _ = sectors.setdefault(indicator.sector or 'Uncategorized', []).append(indicator) %}
+                        {% endfor %}
+                    
+                        {% for sector, group in sectors.items() %}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="heading-{{ loop.index }}">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#collapse-{{ loop.index }}" aria-expanded="false"
+                                        aria-controls="collapse-{{ loop.index }}">
+                                    {{ sector }}
+                                </button>
+                            </h2>
+                            <div id="collapse-{{ loop.index }}" class="accordion-collapse collapse"
+                                 aria-labelledby="heading-{{ loop.index }}" data-bs-parent="#indicatorAccordion">
+                                <div class="accordion-body p-0">
+                                    <ul class="list-group">
+                                        {% for indicator in group %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center indicator-item">
+                                            <button class="btn btn-link p-0 text-start flex-grow-1 text-truncate" style="text-decoration: none;" onclick="showMetadata('{{ indicator.name }}', '{{ indicator.status }}', '{{ indicator.sector }}', '{{ indicator.dimension }}', '{{ indicator.version }}', '{{ indicator.owner }}')">
+                                              <strong>{{ indicator.name }}</strong>
+                                            </button>
+                                            <span class="badge bg-{{ 'success' if indicator.status == 'Active' else 'secondary' }} status-badge ms-2">{{ indicator.status }}</span>
+                                            <a href="/trends/{{ indicator.id }}" class="btn btn-sm btn-outline-primary ms-2"><i class="fas fa-chart-line"></i></a>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>                
+                </div>
+            </div>
+
+            <!-- Upload Data -->
+            <div class="col-md-4">
+                <div class="section-card">
+                    <div class="section-title"><i class="fas fa-upload me-2"></i>Upload Data</div>
+                    <form class="upload-form" action="/upload/" method="post" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="file_type" class="form-label">Select File Type</label>
+                            <select name="file_type" class="form-select" required>
+                                <option value="indicators">Indicators</option>
+                                <option value="values">Indicator Values</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="file" class="form-label">Choose CSV File</label>
+                            <input type="file" class="form-control" name="file" accept=".csv" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 upload-btn">
+                            <i class="fas fa-upload me-1"></i> Upload
+                        </button>
+                    </form>
+                    
+                    <div class="section-title mt-4"><i class="fas fa-clipboard-check me-2"></i>Tracking Dashboard</div>
+                    <div class="table-responsive data-table">
+                        <table class="table table-sm table-striped align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Indicator ID</th>
+                                    <th>Year</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for value in indicator_values %}
+                                <tr>
+                                    <td>{{ value.indicator_id }}</td>
+                                    <td>{{ value.year }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if value.tracking_status == 'OK' else 'danger' }}">
+                                            {{ value.tracking_status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Explore Trends -->
+            <div class="col-md-4">
+                <div class="section-card">
+                    <div class="section-title"><i class="fas fa-chart-bar me-2"></i>Explore Trends</div>
+                    <form id="trend-form" class="row g-3 mb-3">
+                        <div class="col-md-12">
+                            <label for="indicatorSelect" class="form-label">Select up to 4 indicators</label>
+                            <select multiple class="form-select" id="indicatorSelect">
+                                {% for indicator in indicators %}
+                                    <option value="{{ indicator.id }}">{{ indicator.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-12">
+                            <button type="submit" class="btn btn-success w-100 upload-btn">
+                                <i class="fas fa-chart-pie me-1"></i> Generate
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="chart-container mt-3">
+                        <canvas id="trendChart" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Indicator Metadata Modal -->
+    <div class="modal fade" id="indicatorModal" tabindex="-1" aria-labelledby="indicatorModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content shadow">
+            <div class="modal-header">
+              <h5 class="modal-title" id="indicatorModalLabel"><i class="fas fa-info-circle me-2"></i>Indicator Metadata</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <p><strong>Name:</strong> <span id="modalName"></span></p>
+              <p><strong>Status:</strong> <span id="modalStatus"></span></p>
+              <p><strong>Sector:</strong> <span id="modalSector"></span></p>
+              <p><strong>Dimension:</strong> <span id="modalDimension"></span></p>
+              <p><strong>Version:</strong> <span id="modalVersion"></span></p>
+              <p><strong>Owner:</strong> <span id="modalOwner"></span></p>
+            </div>
+          </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // PRESERVED ORIGINAL FUNCTIONALITY - NO CHANGES
+        document.getElementById("trend-form").addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const selected = Array.from(document.getElementById("indicatorSelect").selectedOptions).map(opt => opt.value);
+            if (selected.length === 0 || selected.length > 4) {
+                alert("Please select 1 to 4 indicators.");
+                return;
+            }
+
+            const res = await fetch("/api/trends", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ indicator_ids: selected })
+            });
+
+            const data = await res.json();
+            const ctx = document.getElementById("trendChart").getContext("2d");
+
+            const datasets = data.series.map(serie => ({
+                label: serie.label,
+                data: serie.data.map(p => ({ x: p.year, y: p.value })),
+                fill: false,
+                tension: 0.3
+            }));
+
+            if (window.myChart) window.myChart.destroy();
+            window.myChart = new Chart(ctx, {
+                type: "line",
+                data: { datasets },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: "top" } },
+                    scales: {
+                        x: { title: { display: true, text: "Year" }, type: "linear", ticks: { stepSize: 1 } },
+                        y: { title: { display: true, text: "Value" } }
+                    }
+                }
+            });
+        });
+
+        const searchInput = document.getElementById("searchInput");
+        const sectorFilter = document.getElementById("sectorFilter");
+        const statusFilter = document.getElementById("statusFilter");
+
+        function filterIndicators() {
+            const search = searchInput.value.toLowerCase();
+            const sector = sectorFilter.value;
+            const status = statusFilter.value;
+
+            const items = document.querySelectorAll(".accordion-item");
+
+            items.forEach(item => {
+                let showSection = false;
+
+                const indicatorItems = item.querySelectorAll(".list-group-item");
+
+                indicatorItems.forEach(ind => {
+                    const name = ind.querySelector("strong").textContent.toLowerCase();
+                    const badge = ind.querySelector(".badge").textContent.trim();
+                    const sectorTitle = item.querySelector(".accordion-button").textContent.trim();
+
+                    const matchesSearch = name.includes(search);
+                    const matchesStatus = !status || badge === status;
+                    const matchesSector = !sector || sectorTitle === sector;
+
+                    const visible = matchesSearch && matchesStatus && matchesSector;
+                    ind.style.display = visible ? "flex" : "none";
+
+                    if (visible) showSection = true;
+                });
+
+                item.style.display = showSection ? "block" : "none";
+            });
+        }
+
+        searchInput.addEventListener("input", filterIndicators);
+        sectorFilter.addEventListener("change", filterIndicators);
+        statusFilter.addEventListener("change", filterIndicators);
+
+        function showMetadata(name, status, sector, dimension, version, owner) {
+            document.getElementById("modalName").textContent = name;
+            document.getElementById("modalStatus").textContent = status;
+            document.getElementById("modalSector").textContent = sector || "—";
+            document.getElementById("modalDimension").textContent = dimension || "—";
+            document.getElementById("modalVersion").textContent = version || "—";
+            document.getElementById("modalOwner").textContent = owner || "—";
+        
+            var modal = new bootstrap.Modal(document.getElementById('indicatorModal'));
+            modal.show();
+        }
+    </script>
+</body>
+</html>

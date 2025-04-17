@@ -1,0 +1,6 @@
+indicator_id,year,region,province,gender,value,tracking_status,tracking_message
+IND001,2020,Nationwide,,All,9.5,OK,
+IND001,2021,Nationwide,,All,8.7,OK,
+IND002,2020,,Province A,,2.1,OK,
+IND002,2021,,Province B,,3.0,OK,
+IND003,2019,Region A,,All,,Missing,No data reported by source
