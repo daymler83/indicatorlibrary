@@ -19,6 +19,8 @@ class Indicator(Base):
     version = Column(Float)
     dimension = Column(Text)
     sector = Column(Text)
+    type=Column(String(20), default='operational')
+    priority=Column(String(20), default='medium')
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now(), server_default=func.now())
 

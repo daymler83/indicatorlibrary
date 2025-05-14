@@ -27,6 +27,8 @@ class IndicatorCreate(BaseModel):
     version: float
     dimension: Optional[str] = None
     sector: Optional[str] = None
+    type: Optional[str]="operational"
+    priority: Optional[str]="medium"
 
 class IndicatorValueCreate(BaseModel):
     indicator_id: str
