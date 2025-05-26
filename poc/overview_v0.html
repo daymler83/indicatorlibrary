@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Overview{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-md-3">
+        <div class="card text-center p-3 shadow">
+            <h5>Total Indicators</h5>
+            <h2>{{ total_indicators }}</h2>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center p-3 shadow">
+            <h5>Total Values</h5>
+            <h2>{{ total_values }}</h2>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center p-3 shadow">
+            <h5>Dimensions</h5>
+            <h2>{{ total_dimensions }}</h2>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center p-3 shadow">
+            <h5>DB Tables</h5>
+            <h2>{{ table_count }}</h2>
+        </div>
+    </div>
+</div>
+
+<div class="mt-5">
+    <h4>Indicators by Dimension</h4>
+    <ul class="list-group">
+        {% for dim, count in indicators_by_dimension.items() %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            {{ dim }}
+            <span class="badge bg-primary rounded-pill">{{ count }}</span>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Toggle sidebar on mobile
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.querySelector('.sidebar');
+    
+    sidebarToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('show');
+    });
+
+    // Toggle upload form visibility
+    const uploadToggle = document.getElementById('uploadToggle');
+    const uploadFormContainer = document.getElementById('uploadFormContainer');
+    
+    if (uploadToggle && uploadFormContainer) {
+        uploadToggle.addEventListener('click', () => {
+            uploadFormContainer.classList.toggle('show');
+        });
+    }
+</script>
+{% endblock %}

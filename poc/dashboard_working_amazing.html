@@ -90,30 +90,6 @@
         .sidebar:hover .nav-link i {
             transform: scale(1.1);
         }
-
-
-        .sidebar {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .sidebar .btn-danger {
-        background: none;
-        color: white;
-        font-weight: 500;
-        padding: 0.75rem 1rem;
-        border: none;
-        border-radius: 0;
-        text-align: left;
-        width: 100%;
-        transition: all 0.2s ease;
-        }
-
-        .sidebar .btn-danger:hover {
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-        }
-
         
         .dashboard-header {
             background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
@@ -472,12 +448,6 @@
             padding: 2rem;
             color: #6c757d;
         }
-
-        .indicator-item.active-filter {
-            background-color: var(--light-green);
-            border-left: 4px solid var(--accent-green);
-        }
-
     </style>
 </head>
 <body>
@@ -487,7 +457,7 @@
             <li class="nav-item">
                 <button id="openPriorityChat" class="nav-link">
                     <i class="fas fa-robot"></i>
-                    High priority chat
+                    High Priority Chat
                     <span class="badge bg-danger ms-2">3</span>
                 </button>
             </li>
@@ -500,25 +470,10 @@
             <li class="nav-item">
                 <a class="nav-link" href="#">
                     <i class="fas fa-plug"></i>
-                    API load
+                    API Load
                     <span class="badge bg-warning ms-2">85%</span>
                 </a>
             </li>
-
-            <li class="nav-item">
-                <a href="/overview" class="nav-link">
-                    <i class="fas fa-chart-pie me-2"></i>
-                    Overview
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a href="/user-management" class="nav-link">
-                    <i class="fas fa-users-cog me-2"></i>
-                    User management
-                </a>
-            </li>
-              
             <li class="nav-item">
                 <a class="nav-link" href="#">
                     <i class="fas fa-envelope"></i>
@@ -526,11 +481,6 @@
                 </a>
             </li>
         </ul>
-        <div class="mt-auto pt-4">
-            <button id="signOutBtn" class="btn btn-danger w-100">
-                <i class="fas fa-sign-out-alt me-2"></i> Sign out
-            </button>
-        </div>
     </div>
 
     <!-- Mobile Sidebar Toggle -->
@@ -642,45 +592,69 @@
                     
                     <div class="accordion" id="indicatorAccordion">
                         {% for dimension, group in dimensions.items() %}
-                            {% set filtered_group = group | selectattr("id", "equalto", selected_indicator_id) | list if selected_indicator_id else group %}
-                            {% if filtered_group %}
-                                <div class="accordion-item">
-                                <h2 class="accordion-header" id="heading-{{ loop.index }}">
-                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                            data-bs-target="#collapse-{{ loop.index }}" aria-expanded="false"
-                                            aria-controls="collapse-{{ loop.index }}">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="heading-{{ loop.index }}">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                        data-bs-target="#collapse-{{ loop.index }}" aria-expanded="false"
+                                        aria-controls="collapse-{{ loop.index }}">
                                     {{ dimension }}
-                                    </button>
-                                </h2>
-                                <div id="collapse-{{ loop.index }}" class="accordion-collapse collapse"
-                                    aria-labelledby="heading-{{ loop.index }}" data-bs-parent="#indicatorAccordion">
-                                    <div class="accordion-body p-0">
+                                </button>
+                            </h2>
+                            <div id="collapse-{{ loop.index }}" class="accordion-collapse collapse"
+                                 aria-labelledby="heading-{{ loop.index }}" data-bs-parent="#indicatorAccordion">
+                                <div class="accordion-body p-0">
                                     <ul class="list-group">
-                                        {% for indicator in filtered_group %}
-                                        <li class="list-group-item indicator-item d-flex justify-content-between align-items-center" data-id="{{ indicator.id }}">
-                                            <button class="btn btn-link p-0 text-start flex-grow-1 text-truncate"
-                                                    style="text-decoration: none;"
-                                                    onclick="showMetadata('{{ indicator.name }}', '{{ indicator.status }}', '{{ indicator.dimension }}', '{{ indicator.version }}', '{{ indicator.owner }}', this, '{{ indicator.definition }}', '{{ indicator.formula }}')">
-                                            <strong>{{ indicator.name }}</strong>
+                                        {% for indicator in group %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center indicator-item" 
+                                            data-sector="{{ indicator.sector or '' }}"
+                                            data-status="{{ indicator.status }}"
+                                            data-dimension="{{ indicator.dimension or '' }}">
+                                            <button class="btn btn-link p-0 text-start flex-grow-1 text-truncate" style="text-decoration: none;" onclick="showMetadata('{{ indicator.name }}', '{{ indicator.status }}', '{{ indicator.dimension }}', '{{ indicator.version }}', '{{ indicator.owner }}', this, '{{ indicator.definition }}', '{{ indicator.formula }}')">
+                                              <strong>{{ indicator.name }}</strong>
                                             </button>
-                                            <button class="btn btn-sm btn-outline-success ms-2"
-                                                    onclick="selectIndicator('{{ indicator.id }}')"
-                                                    title="Filter columns 2 and 3">
-                                            <i class="fas fa-filter"></i>
-                                            </button>
-                                            <a href="/trends/{{ indicator.id }}" class="btn btn-sm btn-outline-primary ms-2">
-                                            <i class="fas fa-chart-line"></i>
-                                            </a>
+                                            <span class="badge bg-{{ 'success' if indicator.status == 'Active' else 'secondary' }} status-badge ms-2">{{ indicator.status }}</span>
+                                            <a href="/trends/{{ indicator.id }}" class="btn btn-sm btn-outline-primary ms-2"><i class="fas fa-chart-line"></i></a>
                                         </li>
                                         {% endfor %}
                                     </ul>
-                                    </div>
                                 </div>
-                                </div>
-                            {% endif %}
+                            </div>
+                        </div>
                         {% endfor %}
-
                     </div>                
+                </div>
+            </div>
+
+            
+
+            <!-- Explore Trends -->
+            <div class="col-lg-4">
+                <div class="section-card">
+                    <div class="section-title"><i class="fas fa-chart-bar me-2"></i>Data Exploration</div>
+                    <form id="trend-form" class="row g-3 mb-3">
+                        <div class="col-md-12">
+                            <label for="indicatorSelect" class="form-label">Select up to 4 indicators</label>
+                            <div class="search-box mb-2">
+                                <input type="text" id="trendSearch" class="form-control" placeholder="Search indicators...">
+                                <i class="fas fa-search search-icon"></i>
+                            </div>
+                            <select multiple class="form-select" id="indicatorSelect" size="8" style="height: auto;">
+                                {% for indicator in indicators %}
+                                    <option value="{{ indicator.id }}" data-sector="{{ indicator.sector or '' }}">{{ indicator.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
+                        </div>
+                        <div class="col-md-12">
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="fas fa-chart-pie me-1"></i> Generate
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="chart-container mt-3">
+                        <canvas id="trendChart" height="300"></canvas>
+                    </div>
                 </div>
             </div>
 
@@ -688,51 +662,6 @@
             <div class="col-lg-4">
                 <div class="section-card">
                     <div class="section-title"><i class="fas fa-clipboard-check me-2"></i>Tracking Data Availability</div>
-
-                    {% if selected_indicator_id %}
-                    <div class="alert alert-info py-1 mb-2">
-                        🔍 Showing results for: <strong>Indicator {{ selected_indicator_id }}</strong>
-                        <a href="/dashboard" class="btn btn-sm btn-outline-secondary ms-2">Clear All Filters</a>
-                    </div>
-                    {% endif %}
-
-                    <form method="get" class="row g-2 mb-3">
-                        <input type="hidden" name="indicator_id" id="indicatorFilterInput" value=""> 
-                        <div class="col-md-4">
-                          <select class="form-select form-select-sm" name="year">
-                            <option value="">Year</option>
-                            {% for y in filter_years %}
-                            <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>{{ y }}</option>
-                            {% endfor %}
-                          </select>
-                        </div>
-                        <div class="col-md-4">
-                          <select class="form-select form-select-sm" name="region">
-                            <option value="">Region</option>
-                            {% for r in filter_regions %}
-                            <option value="{{ r }}" {% if selected_region == r %}selected{% endif %}>{{ r }}</option>
-                            {% endfor %}
-                          </select>
-                        </div>
-                        <div class="col-md-4">
-                          <select class="form-select form-select-sm" name="gender">
-                            <option value="">Gender</option>
-                            {% for g in filter_genders %}
-                            <option value="{{ g }}" {% if selected_province == g %}selected{% endif %}>{{ g }}</option>
-                            {% endfor %}
-                          </select>
-                        </div>
-                        
-                        <div class="col-md-12 d-flex justify-content-between align-items-end mt-2">
-                            <button type="submit" class="btn btn-success me-2">
-                                <i class="fas fa-filter me-1"></i> Filter Tracking Data
-                            </button>
-                            <a href="/dashboard" class="btn btn-outline-secondary">
-                                <i class="fas fa-times-circle me-1"></i> Clear
-                            </a>
-                        </div>
-                      </form>
-                      
                     
                     <div class="accordion tracking-accordion" id="trackingAccordion">
                         {% for indicator_id, records in tracking_by_indicator.items() %}
@@ -780,37 +709,6 @@
                             </div>
                         </div>
                         {% endfor %}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Explore Trends -->
-            <div class="col-lg-4">
-                <div class="section-card">
-                    <div class="section-title"><i class="fas fa-chart-bar me-2"></i>Data Exploration</div>
-                    <form id="trend-form" class="row g-3 mb-3">
-                        <div class="col-md-12">
-                            <label for="indicatorSelect" class="form-label">Select up to 4 indicators</label>
-                            <div class="search-box mb-2">
-                                <input type="text" id="trendSearch" class="form-control" placeholder="Search indicators...">
-                                <i class="fas fa-search search-icon"></i>
-                            </div>
-                            <select multiple class="form-select" id="indicatorSelect" size="8" style="height: auto;">
-                                {% for indicator in indicators %}
-                                    <option value="{{ indicator.id }}" data-sector="{{ indicator.sector or '' }}">{{ indicator.name }}</option>
-                                {% endfor %}
-                            </select>
-                            <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
-                        </div>
-                        <div class="col-md-12">
-                            <button type="submit" class="btn btn-success w-100">
-                                <i class="fas fa-chart-pie me-1"></i> Generate
-                            </button>
-                        </div>
-                    </form>
-
-                    <div class="chart-container mt-3">
-                        <canvas id="trendChart" height="300"></canvas>
                     </div>
                 </div>
             </div>
@@ -1018,61 +916,14 @@
         }
 
         // Event listeners
-
-        searchInput.addEventListener("input", function () {
+        searchInput.addEventListener("input", function() {
+            // Add slight delay for search input to prevent too many requests
             clearTimeout(this.timer);
             this.timer = setTimeout(() => {
-                const query = this.value.trim().toLowerCase();
-
-                // 🔹 Track matching indicators
-                const matchingIds = [];
-                document.querySelectorAll('.indicator-item').forEach(item => {
-                    const name = item.textContent.trim().toLowerCase();
-                    const match = name.includes(query);
-                    item.style.display = match ? '' : 'none';
-
-                    if (match) {
-                        item.classList.add('active-filter');
-                        matchingIds.push(item.getAttribute('data-id'));
-                    } else {
-                        item.classList.remove('active-filter');
-                    }
-                });
-
-                // 🔹 Hide dimension groups with no visible indicators
-                document.querySelectorAll('#indicatorAccordion .accordion-item').forEach(group => {
-                    const visibleItems = group.querySelectorAll('.indicator-item:not([style*="display: none"])');
-                    group.style.display = visibleItems.length > 0 ? '' : 'none';
-                });
-
-                // 🔹 Column 2: tracking data
-                document.querySelectorAll('#trackingAccordion .accordion-item').forEach(item => {
-                    const title = item.querySelector('.accordion-button').textContent;
-                    const show = matchingIds.some(id => title.includes(id));
-                    item.style.display = show ? '' : 'none';
-                });
-
-                // 🔹 Column 3: exploration select dropdown
-                const select = document.getElementById("indicatorSelect");
-                Array.from(select.options).forEach(opt => {
-                    const match = matchingIds.includes(opt.value);
-                    opt.style.display = match ? '' : 'none';
-                    opt.selected = false;
-                });
-
-                // 🔹 Clear chart
-                if (window.myChart) window.myChart.destroy();
-                // 🔹 If only one indicator is visible, treat it as selected
-                const visible = document.querySelectorAll('.indicator-item:not([style*="display: none"])');
-                if (visible.length === 1) {
-                    const onlyId = visible[0].getAttribute('data-id');
-                    document.getElementById("indicatorFilterInput").value = onlyId;
-                }
-
-            }, 400);
+                applyFilters();
+            }, 500);
         });
-
-       
+        
         dimensionFilter.addEventListener("change", applyFilters);
         statusFilter.addEventListener("change", applyFilters);
         sectorFilter.addEventListener("change", applyFilters);
@@ -1105,99 +956,6 @@
         }
 
         // Initialize on page load
-
-        let selectedIndicatorId = null;
-
-        function selectIndicator(indicatorId) {
-            selectedIndicatorId = indicatorId;
-
-            // Set the hidden input so column 2 filters respect the selected indicator
-            const indicatorInput = document.getElementById("indicatorFilterInput");
-            if (indicatorInput) {
-                indicatorInput.value = indicatorId;
-            }
-
-            // 🔹 Column 1: show only the matching indicator + its dimension group
-            document.querySelectorAll('.accordion-item').forEach(accordionItem => {
-                let hasMatch = false;
-                const indicatorItems = accordionItem.querySelectorAll('.indicator-item');
-                
-                indicatorItems.forEach(item => {
-                    const id = item.getAttribute('data-id');
-                    if (id === indicatorId) {
-                        item.style.display = '';
-                        hasMatch = true;
-                    } else {
-                        item.style.display = 'none';
-                    }
-                });
-
-                // Only show the accordion item if it contains the selected indicator
-                accordionItem.style.display = hasMatch ? '' : 'none';
-
-                if (hasMatch) {
-                    // Expand the matching accordion section
-                    const collapse = accordionItem.querySelector('.accordion-collapse');
-                    const bsCollapse = new bootstrap.Collapse(collapse, { toggle: false });
-                    bsCollapse.show();
-                }
-            });
-
-            // 🔹 Column 2: show only matching accordion
-            document.querySelectorAll('#trackingAccordion .accordion-item').forEach(item => {
-                const title = item.querySelector('.accordion-button').textContent;
-                item.style.display = title.includes(indicatorId) ? '' : 'none';
-            });
-
-            // 🔹 Column 3: show and select only the matching option
-            const select = document.getElementById("indicatorSelect");
-            Array.from(select.options).forEach(opt => {
-                const match = (opt.value === indicatorId);
-                opt.style.display = match ? '' : 'none';
-                opt.selected = match;
-            });
-
-            // 🔹 Trigger chart refresh
-            document.getElementById("trend-form").dispatchEvent(new Event("submit"));
-
-            // 🔹 Highlight selection in Column 1
-            document.querySelectorAll('.indicator-item').forEach(item => {
-                item.classList.remove('active-filter');
-                if (item.getAttribute('data-id') === indicatorId) {
-                    item.classList.add('active-filter');
-                }
-            });
-        }
-
-
-        function clearIndicatorFilter() {
-            selectedIndicatorId = null;
-            document.getElementById("indicatorFilterInput").value = "";
-
-            // Show all indicators and dimension groups
-            document.querySelectorAll('.accordion-item, .indicator-item').forEach(item => {
-                item.style.display = '';
-                item.classList.remove('active-filter');
-            });
-
-            // Reset tracking section
-            document.querySelectorAll('#trackingAccordion .accordion-item').forEach(item => {
-                item.style.display = '';
-            });
-
-            // Reset exploration section
-            const select = document.getElementById("indicatorSelect");
-            Array.from(select.options).forEach(opt => {
-                opt.style.display = '';
-                opt.selected = false;
-            });
-
-            // Destroy chart
-            if (window.myChart) {
-                window.myChart.destroy();
-            }
-        }
-
         window.addEventListener('DOMContentLoaded', () => {
             // Show no results message if no indicators are visible
             const visibleItems = document.querySelectorAll('.indicator-item').length;
@@ -1216,11 +974,6 @@
                     paginateTracking(indicatorId, 0);
                     bsCollapse.hide();
                 }
-            });
-            document.getElementById("signOutBtn").addEventListener("click", function () {
-                localStorage.removeItem("access_token");
-                sessionStorage.removeItem("access_token");
-                window.location.href = "/"; // Redirect to login or landing
             });
         });
     </script>

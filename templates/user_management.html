@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2>User Management</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>Is Superuser</th>
+                <th>Permissions</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.email }}</td>
+                <td>{{ user.is_superuser }}</td>
+                <td>
+                    <form method="post" action="/users/{{ user.id }}/permissions">
+                        <div class="d-flex flex-column">
+                            {% for perm in all_permissions %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" 
+                                           name="permissions" value="{{ perm }}"
+                                           {% if perm in user_permissions.get(user.id, []) %}checked{% endif %}>
+                                    <label class="form-check-label">{{ perm }}</label>
+                                </div>
+                            {% endfor %}
+                            <button type="submit" class="btn btn-sm btn-outline-primary mt-1">Save</button>
+                        </div>
+                    </form>
+                </td>
+                <td>
+                    <form method="post" action="/delete-user" style="display:inline;">
+                        <input type="hidden" name="email" value="{{ user.email }}">
+                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+

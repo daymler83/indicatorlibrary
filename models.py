@@ -3,6 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import func
 from sqlalchemy import DateTime
 from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 
 
 
@@ -14,6 +15,7 @@ class Indicator(Base):
     id = Column(String, primary_key=True, index=True)
     name = Column(Text)
     definition=Column(Text)
+    formula=Column(Text, nullable=True)
     owner = Column(Text)
     status = Column(Text)
     version = Column(Float)
@@ -76,3 +78,57 @@ class ValueHistory(Base):
     changed_by = Column(String, nullable=True)  # Optional: use user info if available
     imported_by = Column(String, nullable=True)
     imported_at = Column(DateTime, server_default=func.now())
+
+
+# Grating permissions
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, unique=True, nullable=False, index=True)
+    password_hash = Column(Text, nullable=False)
+    full_name = Column(String(255), nullable=True)
+    is_active = Column(Integer, default=1)  # use Boolean if preferred
+    created_at = Column(DateTime, server_default=func.now())
+
+    permissions = relationship(
+    "Permission",
+    secondary="user_permissions",
+    back_populates="users",
+    foreign_keys="[UserPermission.user_id, UserPermission.permission_id]"  # 👈 Fix here
+    )
+
+
+
+class Permission(Base):
+    __tablename__ = "permissions"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(100), unique=True, nullable=False)
+    description = Column(Text, nullable=True)
+
+    users = relationship(
+    "User",
+    secondary="user_permissions",
+    back_populates="permissions",
+    foreign_keys="[UserPermission.user_id, UserPermission.permission_id]"  # 👈 Match
+    )
+
+
+class UserPermission(Base):
+    __tablename__ = "user_permissions"
+
+    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    permission_id = Column(Integer, ForeignKey("permissions.id"), primary_key=True)
+    granted_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    granted_at = Column(DateTime, server_default=func.now())
+
+DEFAULT_PERMISSIONS = [
+    {"name": "view_indicators", "description": "Can view indicators"},
+    {"name": "edit_indicators", "description": "Can create and edit indicators"},
+    {"name": "upload_values", "description": "Can upload indicator values"},
+    {"name": "approve_indicators", "description": "Can approve indicators"},
+    {"name": "manage_users", "description": "Can manage users and permissions"},
+    {"name": "view_dashboard", "description": "Can access dashboard features"}
+]

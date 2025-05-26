@@ -1,66 +1,30 @@
-# --------------------
-# Standard library
-# --------------------
-import os
-import io
-import math
-import time
-from datetime import datetime
-from collections import deque
-
-# --------------------
-# Third-party libraries
-# --------------------
 import pandas as pd
 from numpy import nan
-from fastapi import (
-    FastAPI, Request, HTTPException, Depends, UploadFile, Form,
-    File, Body, Query
-)
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.cors import CORSMiddleware
+import os
+from datetime import datetime
+from openai import OpenAI
+import io
+import math
+from fastapi import FastAPI, Request, HTTPException, Depends, UploadFile, Form, File, Body
 from pydantic import BaseModel
+from typing import Optional, List
+from db import SessionLocal
+from models import Indicator, IndicatorValue, IndicatorHistory, ValueHistory
 from sqlalchemy.orm import Session
 from sqlalchemy import text, func, distinct, literal
-from typing import Optional, List, Dict, Tuple
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+from typing import Dict, List, Tuple
+import time
+from collections import deque
+from fastapi import Query
 
-# --------------------
-# Internal modules
-# --------------------
-from db import SessionLocal
-from models import (
-    Indicator, IndicatorValue, IndicatorHistory,
-    ValueHistory, User, Permission, UserPermission
-)
-from auth import router as auth_router
-from routers.permissions import router as permissions_router
-from openai import OpenAI
 
-# --------------------
-# App setup
-# --------------------
+
 app = FastAPI()
 
-# Allow CORS for local frontend
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Use ["http://127.0.0.1:5500"] or similar for security
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-
-app.include_router(auth_router, prefix="/auth")
-app.include_router(permissions_router)
 api_times = deque(maxlen=100)
 
-# --------------------
-# Middleware
-# --------------------
 @app.middleware("http")
 async def measure_api_time(request: Request, call_next):
     start = time.perf_counter()
@@ -69,20 +33,8 @@ async def measure_api_time(request: Request, call_next):
     api_times.append(duration)
     return response
 
-# --------------------
-# Static files & templates
-# --------------------
+
 templates = Jinja2Templates(directory="templates")
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
-# --------------------
-# Routes
-# --------------------
-@app.get("/", response_class=HTMLResponse)
-def show_landing(request: Request):
-    return templates.TemplateResponse("landing_page.html", {"request": request})
-
-
 
 class IndicatorCreate(BaseModel):
     id: str
@@ -211,16 +163,11 @@ def dashboard(
     status: Optional[str] = None,
     type: Optional[str] = None,
     priority: Optional[str] = None,
-    search: Optional[str] = None,
-    year: Optional[int] = None,
-    region: Optional[str] = None,
-    province: Optional[str] = None,
-    gender: Optional[str] = None,
-    indicator_id: Optional[str] = None  
+    search: Optional[str] = None
 ):
     # Start with base query
     query = db.query(Indicator)
-
+    
     # Apply filters if they exist
     if search:
         query = query.filter(Indicator.name.ilike(f"%{search}%"))
@@ -234,47 +181,23 @@ def dashboard(
         query = query.filter(Indicator.type == type)
     if priority:
         query = query.filter(Indicator.priority == priority)
-    if indicator_id:
-        query = query.filter(Indicator.id == indicator_id)
 
     indicators = query.all()
-
-    # Get indicator values for tracking dashboard (filtered)
-    indicator_values_query = db.query(IndicatorValue).filter(IndicatorValue.tracking_status.isnot(None))
     
-    if year:
-        indicator_values_query = indicator_values_query.filter(IndicatorValue.year == year)
-    if region:
-        indicator_values_query = indicator_values_query.filter(IndicatorValue.region == region)
-    if province:
-        indicator_values_query = indicator_values_query.filter(IndicatorValue.province == province)
-    if gender:
-        indicator_values_query = indicator_values_query.filter(IndicatorValue.gender == gender)
+    # Get all indicator values for tracking dashboard
+    indicator_values = db.query(IndicatorValue).all()
+    
+    # Get unique values for filter dropdowns from ALL indicators (not filtered)
+    all_indicators = db.query(Indicator).all()
+    
+    sectors = list({ind.sector for ind in all_indicators if ind.sector})
+    statuses = list({ind.status for ind in all_indicators})
+    dimensions = list({ind.dimension for ind in all_indicators if ind.dimension})
+    types = list({ind.type for ind in all_indicators if ind.type})
+    priorities = list({ind.priority for ind in all_indicators if ind.priority})
 
-    if indicator_id:
-        indicator_values_query = indicator_values_query.filter(IndicatorValue.indicator_id == indicator_id)
-        
-    filtered_indicator_values = indicator_values_query.all()
-
-    # Only keep indicators that match filtered values
-
-    if not indicator_id:
-        filtered_ids = {val.indicator_id for val in filtered_indicator_values}
-        indicators = [ind for ind in indicators if ind.id in filtered_ids]
-        
-
-
-    # Build a set of filtered indicator_ids
-    filtered_ids = {val.indicator_id for val in filtered_indicator_values}
-
-    # Filter the indicator list to only those that match filtered values
-    indicators = [ind for ind in indicators if ind.id in filtered_ids]
-
+    
     # Group by dimension for accordion (using filtered indicators)
-
-    if indicator_id:
-        indicators = [ind for ind in indicators if ind.id == indicator_id] # To only show the selected indicator
-
     dimension_groups = {}
     for ind in indicators:
         key = ind.dimension or "Uncategorized"
@@ -282,35 +205,13 @@ def dashboard(
 
     # Group values by indicator for tracking
     tracking_by_indicator = {}
-    for value in filtered_indicator_values:
+    for value in indicator_values:
         tracking_by_indicator.setdefault(value.indicator_id, []).append(value)
-
-    # Get unique values for filter dropdowns from ALL IndicatorValues
-    filter_query = db.query(
-        IndicatorValue.year,
-        IndicatorValue.region,
-        IndicatorValue.province,
-        IndicatorValue.gender
-    ).filter(IndicatorValue.tracking_status.isnot(None)).distinct()
-    results = filter_query.all()
-
-    filter_years = sorted({r.year for r in results if r.year}, reverse=True)
-    filter_regions = sorted({r.region for r in results if r.region})
-    filter_provinces = sorted({r.province for r in results if r.province})
-    filter_genders = sorted({r.gender for r in results if r.gender})
-
-    # Get unique values for indicator filters from ALL indicators
-    all_indicators = db.query(Indicator).all()
-    sectors = list({ind.sector for ind in all_indicators if ind.sector})
-    statuses = list({ind.status for ind in all_indicators})
-    dimensions = list({ind.dimension for ind in all_indicators if ind.dimension})
-    types = list({ind.type for ind in all_indicators if ind.type})
-    priorities = list({ind.priority for ind in all_indicators if ind.priority})
 
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
         "indicators": indicators,
-        "indicator_values": filtered_indicator_values,
+        "indicator_values": indicator_values,
         "dimensions": dimension_groups,
         "tracking_by_indicator": tracking_by_indicator,
         "all_sectors": sectors,
@@ -323,18 +224,8 @@ def dashboard(
         "selected_dimension": dimension,
         "selected_type": type,
         "selected_priority": priority,
-        "search_query": search or "",
-        "filter_years": filter_years,
-        "filter_regions": filter_regions,
-        "filter_provinces": filter_provinces,
-        "filter_genders": filter_genders,
-        "selected_year": year,
-        "selected_region": region,
-        "selected_province": province,
-        "selected_gender": gender,
-        "selected_indicator_id": indicator_id,
+        "search_query": search or ""
     })
-
 
 @app.get("/upload", response_class=HTMLResponse)
 def upload_form(request: Request):
@@ -804,78 +695,3 @@ def overview(request: Request, db: Session = Depends(get_db)):
         "latest_year": latest_year,
         "system_status": system_status
     })
-
-# Handling user permissions
-
-@app.get("/user-management", response_class=HTMLResponse)
-def user_management(request: Request, db: Session = Depends(get_db)):
-    users = db.query(User).all()
-
-    # Get all available permission names
-    all_permissions = [p.name for p in db.query(Permission).all()]
-
-    # Map user ID to their current permissions
-    user_permissions = {
-        user.id: [perm.name for perm in db.query(Permission).join(UserPermission).filter(UserPermission.user_id == user.id).all()]
-        for user in users
-    }
-
-    return templates.TemplateResponse("user_management.html", {
-        "request": request,
-        "users": users,
-        "all_permissions": all_permissions,
-        "user_permissions": user_permissions
-    })
-
-
-
-@app.post("/users/{user_id}/permissions")
-def update_user_permissions(user_id: int, permissions: List[str] = Form(...), db: Session = Depends(get_db)):
-    # Remove all current permissions
-    db.query(UserPermission).filter(UserPermission.user_id == user_id).delete()
-
-    # Add new permissions
-    for perm_name in permissions:
-        perm = db.query(Permission).filter(Permission.name == perm_name).first()
-        if perm:
-            db.add(UserPermission(user_id=user_id, permission_id=perm.id))
-
-    db.commit()
-    return RedirectResponse(url="/user-management", status_code=303)
-
-
-
-@app.post("/delete-user")
-def delete_user(email: str = Form(...), db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == email).first()
-    if user:
-        db.delete(user)
-        db.commit()
-    return RedirectResponse(url="/user-management", status_code=303)
-
-
-from fastapi import Form
-from sqlalchemy.orm import Session
-from fastapi.responses import RedirectResponse
-from typing import List
-
-@app.post("/update-permissions")
-def update_permissions(
-    email: str = Form(...),
-    permissions: List[str] = Form([]),
-    db: Session = Depends(get_db)
-):
-    user = db.query(User).filter(User.email == email).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found.")
-
-    # Delete existing permissions
-    db.query(UserPermission).filter(UserPermission.user_id == user.id).delete()
-
-    # Add new permissions
-    for perm in permissions:
-        db.add(UserPermission(user_id=user.id, permission_name=perm))
-
-    db.commit()
-    return RedirectResponse(url="/user-management", status_code=303)
-
