@@ -344,6 +344,13 @@
   </div>
 
   <script>
+
+    const isLocalhost = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+    const apiBaseUrl = isLocalhost
+     ? "http://localhost:8000"
+     : "https://indicatorlibrary-87cda05a95ed.herokuapp.com";
+
+
     document.getElementById("loginForm").addEventListener("submit", async function(e) {
       e.preventDefault();
 
@@ -354,8 +361,10 @@
       errorEl.textContent = "";
       errorEl.style.opacity = 0;
 
+      
+
       try {
-        const response = await fetch("http://localhost:8000/auth/login", {
+        const response = await fetch(`${apiBaseUrl}/auth/login`, {
           method: "POST",
           headers: {
             "Content-Type": "application/x-www-form-urlencoded"
