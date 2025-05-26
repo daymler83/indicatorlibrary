@@ -345,18 +345,18 @@
 
   <script>
 
-    const isLocalhost = ["localhost", "127.0.0.1"].includes(window.location.hostname);
-    const apiBaseUrl = isLocalhost
-     ? "http://localhost:8000"
-     : "https://indicatorlibrary-87cda05a95ed.herokuapp.com";
-
-
     document.getElementById("loginForm").addEventListener("submit", async function(e) {
       e.preventDefault();
 
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
       const errorEl = document.getElementById("errorMessage");
+
+      const isLocalhost = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+      const apiBaseUrl = isLocalhost
+        ? "http://localhost:8000"
+        : "https://indicatorlibrary-87cda05a95ed.herokuapp.com";
+
 
       errorEl.textContent = "";
       errorEl.style.opacity = 0;
