@@ -432,8 +432,18 @@ async def upload_csv(
                 db.add(val)
 
     db.commit()
-    return RedirectResponse("/", status_code=303)
-
+    
+    session_cookie = request.cookies.get("session")
+    response = RedirectResponse(url="/dashboard", status_code=303)
+    if session_cookie:
+        response.set_cookie(
+            key="session",
+            value=session_cookie,
+            httponly=True,
+            secure=False,  # change to True if using https
+            samesite="lax"
+        )
+    return response
 
 
 @app.get("/tracking/", response_class=HTMLResponse)
