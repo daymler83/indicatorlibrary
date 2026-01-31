@@ -27,16 +27,19 @@ from sqlalchemy import text, func, distinct, literal
 from typing import Optional, List, Dict, Tuple
 from fastapi.middleware.cors import CORSMiddleware
 
+
 # --------------------
 # Internal modules
 # --------------------
 from db import SessionLocal
 from models import (
-    Indicator, IndicatorValue, IndicatorHistory,
+    Indicator, IndicatorText,IndicatorValue, IndicatorHistory,
     ValueHistory, User, Permission, UserPermission
 )
 from auth import router as auth_router
 from routers.permissions import router as permissions_router
+from routers import translate
+from routers import translate_page
 from openai import OpenAI
 
 # --------------------
@@ -56,6 +59,8 @@ app.add_middleware(
 
 app.include_router(auth_router, prefix="/auth")
 app.include_router(permissions_router)
+app.include_router(translate.router)
+app.include_router(translate_page.router)
 api_times = deque(maxlen=100)
 
 # --------------------
@@ -204,8 +209,10 @@ def home():
 
 @app.get("/dashboard", response_class=HTMLResponse)
 def dashboard(
+    
     request: Request, 
     db: Session = Depends(get_db),
+    lang: str = "en",   # ← ADD THIS LINE
     sector: Optional[str] = None,
     dimension: Optional[str] = None,
     status: Optional[str] = None,
@@ -218,16 +225,27 @@ def dashboard(
     gender: Optional[str] = None,
     indicator_id: Optional[str] = None  
 ):
+    
+    #lang = request.query_params.get("lang", "en")
+    
     # Start with base query
-    query = db.query(Indicator)
+    #query = db.query(Indicator)
+
+    query = (
+        db.query(Indicator, IndicatorText)
+        .join(IndicatorText, IndicatorText.indicator_id == Indicator.id)
+        .filter(IndicatorText.language == lang)
+    )
+
+    print(f"Dashboard language: {lang}")
 
     # Apply filters if they exist
     if search:
-        query = query.filter(Indicator.name.ilike(f"%{search}%"))
+        query = query.filter(IndicatorText.name.ilike(f"%{search}%"))
     if sector:
-        query = query.filter(Indicator.sector == sector)
+        query = query.filter(IndicatorText.sector == sector)
     if dimension:
-        query = query.filter(Indicator.dimension == dimension)
+        query = query.filter(IndicatorText.dimension == dimension)
     if status:
         query = query.filter(Indicator.status == status)
     if type:
@@ -237,7 +255,23 @@ def dashboard(
     if indicator_id:
         query = query.filter(Indicator.id == indicator_id)
 
-    indicators = query.all()
+
+
+    rows = query.all()
+
+    indicators = []
+    for ind, text in rows:
+        indicators.append({
+            "id": ind.id,
+            "name": text.name,
+            "dimension": text.dimension,
+            "sector": text.sector,
+            #"dimension": ind.dimension,
+            #"sector": ind.sector,
+            "status": ind.status,
+            "type": ind.type,
+            "priority": ind.priority
+        })
 
     # Get indicator values for tracking dashboard (filtered)
     indicator_values_query = db.query(IndicatorValue).filter(IndicatorValue.tracking_status.isnot(None))
@@ -260,7 +294,8 @@ def dashboard(
 
     if not indicator_id:
         filtered_ids = {val.indicator_id for val in filtered_indicator_values}
-        indicators = [ind for ind in indicators if ind.id in filtered_ids]
+        #indicators = [ind for ind in indicators if ind.id in filtered_ids]
+        indicators = [ind for ind in indicators if ind["id"] in filtered_ids]
         
 
 
@@ -268,16 +303,20 @@ def dashboard(
     filtered_ids = {val.indicator_id for val in filtered_indicator_values}
 
     # Filter the indicator list to only those that match filtered values
-    indicators = [ind for ind in indicators if ind.id in filtered_ids]
+    #indicators = [ind for ind in indicators if ind.id in filtered_ids]
+    indicators = [ind for ind in indicators if ind["id"] in filtered_ids]
 
     # Group by dimension for accordion (using filtered indicators)
 
     if indicator_id:
-        indicators = [ind for ind in indicators if ind.id == indicator_id] # To only show the selected indicator
+        #indicators = [ind for ind in indicators if ind.id == indicator_id] # To only show the selected indicator
+        indicators = [ind for ind in indicators if ind["id"] == indicator_id]
 
     dimension_groups = {}
+    #for ind in indicators:
+    #    key = ind.dimension or "Uncategorized"
     for ind in indicators:
-        key = ind.dimension or "Uncategorized"
+        key = ind["dimension"] or "Uncategorized"
         dimension_groups.setdefault(key, []).append(ind)
 
     # Group values by indicator for tracking
@@ -300,12 +339,38 @@ def dashboard(
     filter_genders = sorted({r.gender for r in results if r.gender})
 
     # Get unique values for indicator filters from ALL indicators
-    all_indicators = db.query(Indicator).all()
-    sectors = list({ind.sector for ind in all_indicators if ind.sector})
-    statuses = list({ind.status for ind in all_indicators})
-    dimensions = list({ind.dimension for ind in all_indicators if ind.dimension})
-    types = list({ind.type for ind in all_indicators if ind.type})
-    priorities = list({ind.priority for ind in all_indicators if ind.priority})
+    #all_indicators = db.query(Indicator).all()
+
+    ''''''
+
+    all_indicators = (
+        db.query(Indicator, IndicatorText)
+        .join(IndicatorText, IndicatorText.indicator_id == Indicator.id)
+        .filter(IndicatorText.language == lang)
+        .all()
+    )
+
+    #sectors = list({ind.sector for ind in all_indicators if ind.sector})
+    #statuses = list({ind.status for ind in all_indicators})
+    #dimensions = list({ind.dimension for ind in all_indicators if ind.dimension})
+    #types = list({ind.type for ind in all_indicators if ind.type})
+    #priorities = list({ind.priority for ind in all_indicators if ind.priority})
+
+    #sectors = list({text.sector for ind, _ in all_indicators if text.sector})
+    sectors = sorted({txt.sector for _, txt in all_indicators if txt.sector})
+    statuses = list({ind.status for ind, _ in all_indicators if ind.status})
+    #dimensions = list({text.dimension for ind, _ in all_indicators if text.dimension})
+    dimensions = sorted({txt.dimension for _, txt in all_indicators if txt.dimension})
+    types = list({ind.type for ind, _ in all_indicators if ind.type})
+    priorities = list({ind.priority for ind, _ in all_indicators if ind.priority})
+
+    exploration_indicators = [
+        {
+            "id": ind.id,
+            "name": text.name
+        }
+        for ind, text in all_indicators
+    ]
 
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
@@ -333,6 +398,8 @@ def dashboard(
         "selected_province": province,
         "selected_gender": gender,
         "selected_indicator_id": indicator_id,
+        "exploration_indicators": exploration_indicators,
+        "lang": lang,
     })
 
 
@@ -889,3 +956,83 @@ def update_permissions(
     db.commit()
     return RedirectResponse(url="/user-management", status_code=303)
 
+
+# Translating english to arabic
+
+@app.post("/admin/translate-indicators-to-ar")
+def translate_indicators_to_ar(db: Session = Depends(get_db)):
+    """
+    One-time job:
+    - Reads English IndicatorText
+    - Creates Arabic IndicatorText if missing
+    """
+
+    # 1. Get all EN texts
+    en_texts = db.query(IndicatorText).filter(
+        IndicatorText.language == "en"
+    ).all()
+
+    created = 0
+    skipped = 0
+
+    for en in en_texts:
+        # 2. Skip if Arabic already exists
+        exists = db.query(IndicatorText).filter(
+            IndicatorText.indicator_id == en.indicator_id,
+            IndicatorText.language == "ar"
+        ).first()
+
+        if exists:
+            skipped += 1
+            continue
+
+        # 3. Translate (simple, controlled)
+        try:
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are a professional translator for official statistical indicators. Translate accurately to Modern Standard Arabic."
+                    },
+                    {
+                        "role": "user",
+                        "content": en.name
+                    }
+                ],
+                temperature=0
+            )
+
+            translated_name = response.choices[0].message.content.strip()
+
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Translation failed for {en.indicator_id}: {str(e)}"
+            )
+
+        # 4. Insert Arabic row
+        ar_text = IndicatorText(
+            indicator_id=en.indicator_id,
+            language="ar",
+            name=translated_name,
+            definition=en.definition,
+            formula=en.formula,
+            owner=en.owner,
+            dimension=en.dimension,
+            sector=en.sector,
+            is_auto_translated=1,
+            translation_status="auto",
+            source_language="en"
+        )
+
+        db.add(ar_text)
+        created += 1
+
+    db.commit()
+
+    return {
+        "status": "done",
+        "created": created,
+        "skipped": skipped
+    }

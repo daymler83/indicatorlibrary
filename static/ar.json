@@ -1,0 +1,17 @@
+{
+  "title_dashboard": "لوحة التحكم",
+  "title_indicators": "المؤشرات",
+  "title_tracking": "توفر بيانات التتبع",
+  "label_filter": "تصفية",
+  "label_clear": "مسح",
+  "label_status": "الحالة",
+  "label_owner": "المالك",
+  "label_sector": "القطاع",
+  "label_dimension": "البعد",
+  "label_year": "السنة",
+  "label_gender": "النوع",
+  "label_region": "المنطقة",
+  "label_records": "سجلات",
+  "label_indicator": "المؤشر",
+  "msg_no_results": "لا توجد نتائج."
+}

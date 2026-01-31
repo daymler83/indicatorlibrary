@@ -26,6 +26,33 @@ class Indicator(Base):
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now(), server_default=func.now())
 
+    texts = relationship("IndicatorText", back_populates="indicator")
+
+class IndicatorText(Base):
+    __tablename__ = "indicator_texts"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    indicator_id = Column(String, ForeignKey("indicators.id"), index=True)
+
+    language = Column(String(2))  # 'en' | 'ar'
+
+    name = Column(Text)
+    definition = Column(Text)
+    formula = Column(Text, nullable=True)
+    owner = Column(Text)
+    dimension = Column(Text)
+    sector = Column(Text)
+
+    is_auto_translated = Column(Integer, default=0)
+    translation_status = Column(String(20), default='official')
+    source_language = Column(String(2))  # 'en' or 'ar'
+
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, onupdate=func.now(), server_default=func.now())
+
+    indicator = relationship("Indicator", back_populates="texts")
+
+
 class IndicatorValue(Base):
     __tablename__ = "indicator_values"
 
@@ -60,6 +87,22 @@ class IndicatorHistory(Base):
     changed_at = Column(DateTime, server_default=func.now())
     changed_by = Column(String, nullable=True)  # optional user/email/etc.
     version_number = Column(Integer, default=1)
+
+class IndicatorTextHistory(Base):
+    __tablename__ = "indicator_text_history"
+
+    id = Column(Integer, primary_key=True)
+    indicator_id = Column(String)
+    language = Column(String(2))
+    name = Column(Text)
+    definition = Column(Text)
+    owner = Column(Text)
+    dimension = Column(Text)
+    sector = Column(Text)
+    changed_at = Column(DateTime, server_default=func.now())
+    changed_by = Column(String)
+    version_number = Column(Integer)
+
 
 
 class ValueHistory(Base):

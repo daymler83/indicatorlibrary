@@ -1,0 +1,17 @@
+{
+  "title_dashboard": "Dashboard",
+  "title_indicators": "Indicators",
+  "title_tracking": "Tracking Data Availability",
+  "label_filter": "Filter",
+  "label_clear": "Clear",
+  "label_status": "Status",
+  "label_owner": "Owner",
+  "label_sector": "Sector",
+  "label_dimension": "Dimension",
+  "label_year": "Year",
+  "label_gender": "Gender",
+  "label_region": "Region",
+  "label_records": "records",
+  "label_indicator": "Indicator",
+  "msg_no_results": "No results found."
+}

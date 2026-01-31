@@ -3,6 +3,15 @@
 {% block title %}Overview - Indicator Library{% endblock %}
 
 {% block content %}
+
+<!-- Añade esto al principio -->
+<div class="lang-switcher-container">
+  <div class="btn-group" role="group">
+    <button type="button" class="btn btn-sm lang-btn active" data-lang="en" onclick="translatePage('en')">EN</button>
+    <button type="button" class="btn btn-sm lang-btn btn-outline-primary" data-lang="ar" onclick="translatePage('ar')">العربية</button>
+  </div>
+</div>
+
 <div class="container-fluid px-4 py-4 overview-container">
 
   <!-- Hero Header -->
@@ -10,9 +19,10 @@
     <div class="col-12">
       <div class="dashboard-hero p-4 rounded-4 shadow">
         <h1 class="display-5 fw-bold text-white">
-          <i class="fas fa-chart-network me-3"></i>Library Performance Tracking
+          <i class="fas fa-chart-network me-3"></i>
+          <span data-translate="performance-title">Library Performance Tracking</span>
         </h1>
-        <p class="lead text-white-50 mb-0">Comprehensive metrics at a glance</p>
+        <p class="lead text-white-50 mb-0" data-translate="performance-subtitle">Comprehensive metrics at a glance</p>
       </div>
     </div>
   </div>
@@ -25,7 +35,7 @@
           <div class="d-flex justify-content-between align-items-center">
             <div class="stat-content">
               <h2 class="stat-number mb-1 fw-bold text-success" data-count="{{ total_indicators }}">0</h2>
-              <p class="stat-title text-muted mb-0">Total Indicators</p>
+              <p class="stat-title text-muted mb-0" data-translate="total-indicators">Total Indicators</p>
             </div>
             <div class="stat-icon rounded-circle bg-success bg-opacity-25 p-3">
               <i class="fas fa-list-ol fa-2x text-success"></i>
@@ -35,7 +45,7 @@
             <div class="progress" style="height: 6px;">
               <div class="progress-bar bg-success" role="progressbar" style="width: 85%" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100"></div>
             </div>
-            <small class="text-muted">Updated just now</small>
+            <small class="text-muted" data-translate="updated-now">Updated just now</small>
           </div>
         </div>
         <div class="card-stripes"></div>
@@ -48,7 +58,7 @@
           <div class="d-flex justify-content-between align-items-center">
             <div class="stat-content">
               <h2 class="stat-number mb-1 fw-bold text-primary" data-count="{{ total_values }}">0</h2>
-              <p class="stat-title text-muted mb-0">Total Values</p>
+              <p class="stat-title text-muted mb-0" data-translate="total-values">Total Values</p>
             </div>
             <div class="stat-icon rounded-circle bg-primary bg-opacity-25 p-3">
               <i class="fas fa-database fa-2x text-primary"></i>
@@ -58,7 +68,7 @@
             <div class="progress" style="height: 6px;">
               <div class="progress-bar bg-primary" role="progressbar" style="width: 72%" aria-valuenow="72" aria-valuemin="0" aria-valuemax="100"></div>
             </div>
-            <small class="text-muted">Updated just now</small>
+            <small class="text-muted" data-translate="updated-now">Updated just now</small>
           </div>
         </div>
         <div class="card-stripes"></div>
@@ -71,7 +81,7 @@
           <div class="d-flex justify-content-between align-items-center">
             <div class="stat-content">
               <h2 class="stat-number mb-1 fw-bold text-warning" data-count="{{ total_dimensions }}">0</h2>
-              <p class="stat-title text-muted mb-0">Dimensions</p>
+              <p class="stat-title text-muted mb-0" data-translate="dimensions">Dimensions</p>
             </div>
             <div class="stat-icon rounded-circle bg-warning bg-opacity-25 p-3">
               <i class="fas fa-layer-group fa-2x text-warning"></i>
@@ -81,7 +91,7 @@
             <div class="progress" style="height: 6px;">
               <div class="progress-bar bg-warning" role="progressbar" style="width: 64%" aria-valuenow="64" aria-valuemin="0" aria-valuemax="100"></div>
             </div>
-            <small class="text-muted">Updated just now</small>
+            <small class="text-muted" data-translate="updated-now">Updated just now</small>
           </div>
         </div>
         <div class="card-stripes"></div>
@@ -94,7 +104,7 @@
           <div class="d-flex justify-content-between align-items-center">
             <div class="stat-content">
               <h2 class="stat-number mb-1 fw-bold text-dark" data-count="{{ table_count }}">0</h2>
-              <p class="stat-title text-muted mb-0">DB Tables</p>
+              <p class="stat-title text-muted mb-0" data-translate="db-tables">DB Tables</p>
             </div>
             <div class="stat-icon rounded-circle bg-dark bg-opacity-25 p-3">
               <i class="fas fa-table fa-2x text-dark"></i>
@@ -104,7 +114,7 @@
             <div class="progress" style="height: 6px;">
               <div class="progress-bar bg-dark" role="progressbar" style="width: 90%" aria-valuenow="90" aria-valuemin="0" aria-valuemax="100"></div>
             </div>
-            <small class="text-muted">Updated just now</small>
+            <small class="text-muted" data-translate="updated-now">Updated just now</small>
           </div>
         </div>
         <div class="card-stripes"></div>
@@ -120,16 +130,17 @@
         <div class="card-header bg-white border-0 pb-0">
           <div class="d-flex justify-content-between align-items-center">
             <h5 class="mb-0 fw-bold">
-              <i class="fas fa-chart-bar me-2 text-primary"></i>Indicators by Dimension
+              <i class="fas fa-chart-bar me-2 text-primary"></i>
+              <span data-translate="indicators-by-dimension">Indicators by Dimension</span>
             </h5>
             <div class="dropdown">
               <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="chartDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="fas fa-sliders-h"></i>
               </button>
               <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="chartDropdown">
-                <li><a class="dropdown-item" href="#" onclick="changeChartType('bar')">Bar Chart</a></li>
-                <li><a class="dropdown-item" href="#" onclick="changeChartType('pie')">Pie Chart</a></li>
-                <li><a class="dropdown-item" href="#" onclick="changeChartType('doughnut')">Doughnut Chart</a></li>
+                <li><a class="dropdown-item" href="#" onclick="changeChartType('bar')" data-translate="bar-chart">Bar Chart</a></li>
+                <li><a class="dropdown-item" href="#" onclick="changeChartType('pie')" data-translate="pie-chart">Pie Chart</a></li>
+                <li><a class="dropdown-item" href="#" onclick="changeChartType('doughnut')" data-translate="doughnut-chart">Doughnut Chart</a></li>
               </ul>
             </div>
           </div>
@@ -147,7 +158,8 @@
       <div class="card shadow-sm border-0 h-100">
         <div class="card-header bg-white border-0">
           <h5 class="mb-0 fw-bold">
-            <i class="fas fa-trophy me-2 text-warning"></i>Top Dimensions
+            <i class="fas fa-trophy me-2 text-warning"></i>
+            <span data-translate="top-dimensions">Top Dimensions</span>
           </h5>
         </div>
         <div class="card-body">
@@ -158,7 +170,7 @@
                 <div class="dimension-color me-3" style="background-color: {{ ['#4CAF50', '#2196F3', '#FFC107', '#9C27B0', '#607D8B', '#E91E63']|random }}"></div>
                 <div>
                   <h6 class="mb-0">{{ dim }}</h6>
-                  <small class="text-muted">{{ count }} indicators</small>
+                  <small class="text-muted">{{ count }} <span data-translate="indicators-word">indicators</span></small>
                 </div>
               </div>
               <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill">{{ ((count / total_indicators) * 100)|round(1) }}%</span>
@@ -176,7 +188,8 @@
       <div class="card shadow-sm border-0">
         <div class="card-header bg-white border-0">
           <h5 class="mb-0 fw-bold">
-            <i class="fas fa-bolt me-2 text-danger"></i>Recent Activity
+            <i class="fas fa-bolt me-2 text-danger"></i>
+            <span data-translate="recent-activity">Recent Activity</span>
           </h5>
         </div>
         <div class="card-body">
@@ -199,7 +212,8 @@
       <div class="card shadow-sm border-0">
         <div class="card-header bg-white border-0">
           <h5 class="mb-0 fw-bold">
-            <i class="fas fa-bell me-2 text-warning"></i>System Status
+            <i class="fas fa-bell me-2 text-warning"></i>
+            <span data-translate="system-status">System Status</span>
           </h5>
         </div>
         
@@ -217,7 +231,7 @@
                 <span 
                   data-bs-toggle="tooltip" 
                   title="Estimate of how efficiently the database is performing based on record count vs. expected load.">
-                  Database Performance
+                  <span data-translate="db-performance">Database Performance</span>
                   <i class="fas fa-info-circle text-muted ms-1"></i>
                 </span>
                 <span>{{ system_status.db_performance }}%</span>
@@ -267,9 +281,110 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
 <script>
-  // Animate stat numbers
+  // ================== SISTEMA DE TRADUCCIÓN ==================
+  
+  // Diccionario de traducciones para overview
+  const overviewTranslations = {
+    en: {
+      "performance-title": "Library Performance Tracking",
+      "performance-subtitle": "Comprehensive metrics at a glance",
+      "total-indicators": "Total Indicators",
+      "total-values": "Total Values",
+      "dimensions": "Dimensions",
+      "db-tables": "DB Tables",
+      "updated-now": "Updated just now",
+      "indicators-by-dimension": "Indicators by Dimension",
+      "top-dimensions": "Top Dimensions",
+      "indicators-word": "indicators",
+      "bar-chart": "Bar Chart",
+      "pie-chart": "Pie Chart",
+      "doughnut-chart": "Doughnut Chart",
+      "recent-activity": "Recent Activity",
+      "system-status": "System Status",
+      "db-performance": "Database Performance"
+    },
+    ar: {
+      "performance-title": "تتبع أداء المكتبة",
+      "performance-subtitle": "مقاييس شاملة بنظرة سريعة",
+      "total-indicators": "إجمالي المؤشرات",
+      "total-values": "إجمالي القيم",
+      "dimensions": "الأبعاد",
+      "db-tables": "جداول قاعدة البيانات",
+      "updated-now": "تم التحديث الآن",
+      "indicators-by-dimension": "المؤشرات حسب البُعد",
+      "top-dimensions": "أهم الأبعاد",
+      "indicators-word": "مؤشرات",
+      "bar-chart": "مخطط أعمدة",
+      "pie-chart": "مخطط دائري",
+      "doughnut-chart": "مخطط حلقي",
+      "recent-activity": "النشاط الأخير",
+      "system-status": "حالة النظام",
+      "db-performance": "أداء قاعدة البيانات"
+    }
+  };
+
+  // Función para traducir la página
+  function translatePage(targetLang) {
+    // Guardar el idioma seleccionado
+    localStorage.setItem('lang', targetLang);
+    
+    // Aplicar traducciones
+    applyTranslations(targetLang);
+    
+    // Cambiar dirección del texto
+    applyDirection(targetLang);
+    
+    // Actualizar botones activos
+    updateButtonStates(targetLang);
+  }
+
+  // Aplicar traducciones a los elementos
+  function applyTranslations(lang) {
+    const dict = overviewTranslations[lang] || overviewTranslations.en;
+    
+    // Traducir elementos con data-translate
+    document.querySelectorAll('[data-translate]').forEach(element => {
+      const key = element.getAttribute('data-translate');
+      if (dict[key]) {
+        element.textContent = dict[key];
+      }
+    });
+  }
+
+  // Cambiar dirección RTL/LTR
+  function applyDirection(lang) {
+    const html = document.documentElement;
+    if (lang === 'ar') {
+      html.setAttribute('dir', 'rtl');
+      html.setAttribute('lang', 'ar');
+    } else {
+      html.setAttribute('dir', 'ltr');
+      html.setAttribute('lang', 'en');
+    }
+  }
+
+  // Actualizar estado de los botones
+  function updateButtonStates(lang) {
+    // Esto asume que tienes botones con clase .lang-btn
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      if (btn.getAttribute('data-lang') === lang) {
+        btn.classList.add('active');
+        btn.classList.remove('btn-outline-primary');
+        btn.classList.add('btn-primary');
+      } else {
+        btn.classList.remove('active');
+        btn.classList.add('btn-outline-primary');
+        btn.classList.remove('btn-primary');
+      }
+    });
+  }
+
+  // ================== ANIMACIÓN DE NÚMEROS ==================
+  
   function animateValue(id, start, end, duration) {
     const obj = document.getElementById(id);
+    if (!obj) return;
+    
     let startTimestamp = null;
     const step = (timestamp) => {
       if (!startTimestamp) startTimestamp = timestamp;
@@ -282,12 +397,8 @@
     window.requestAnimationFrame(step);
   }
 
-  document.querySelectorAll('.stat-number').forEach(el => {
-    animateValue(el.id || (el.id = 'stat-' + Math.random().toString(36).substr(2, 9)), 
-                 0, parseInt(el.getAttribute('data-count')), 1500);
-  });
-
-  // Chart configuration
+  // ================== GRÁFICOS ==================
+  
   let dimensionChart;
   const chartColors = [
     '#4CAF50', '#2196F3', '#FFC107', '#9C27B0', 
@@ -296,7 +407,10 @@
   ];
 
   function initChart(type = 'bar') {
-    const ctx = document.getElementById('dimensionChart').getContext('2d');
+    const ctx = document.getElementById('dimensionChart');
+    if (!ctx) return;
+    
+    const ctx2d = ctx.getContext('2d');
     
     if (dimensionChart) {
       dimensionChart.destroy();
@@ -315,7 +429,7 @@
       return type === 'bar' ? color + '90' : color;
     });
 
-    dimensionChart = new Chart(ctx, {
+    dimensionChart = new Chart(ctx2d, {
       type: type,
       data: {
         labels: labels,
@@ -385,11 +499,29 @@
     initChart(type);
   }
 
-  // Initialize the chart and tooltips
+  // ================== INICIALIZACIÓN ==================
+  
   document.addEventListener('DOMContentLoaded', function() {
+    // 1. Cargar idioma guardado o usar inglés por defecto
+    const savedLang = localStorage.getItem('lang') || 'en';
+    
+    // 2. Aplicar traducción inicial
+    applyTranslations(savedLang);
+    applyDirection(savedLang);
+    
+    // 3. Inicializar números animados
+    document.querySelectorAll('.stat-number').forEach(el => {
+      if (!el.id) {
+        el.id = 'stat-' + Math.random().toString(36).substr(2, 9);
+      }
+      const count = parseInt(el.getAttribute('data-count')) || 0;
+      animateValue(el.id, 0, count, 1500);
+    });
+    
+    // 4. Inicializar gráfico
     initChart();
     
-    // Add hover effects to cards
+    // 5. Efectos hover en tarjetas
     document.querySelectorAll('.stat-card').forEach(card => {
       card.addEventListener('mouseenter', function() {
         this.style.transform = 'translateY(-5px)';
@@ -399,7 +531,7 @@
       });
     });
     
-    // Initialize Bootstrap tooltips
+    // 6. Inicializar tooltips de Bootstrap
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     tooltipTriggerList.forEach(function (tooltipTriggerEl) {
       new bootstrap.Tooltip(tooltipTriggerEl);
@@ -408,6 +540,7 @@
 </script>
 
 <style>
+  /* Estilos específicos para overview */
   .overview-container {
     background-color: #f8fafc;
   }
@@ -415,6 +548,7 @@
   .dashboard-hero {
     background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
     box-shadow: 0 4px 20px rgba(76, 175, 80, 0.3);
+    border-radius: 15px;
   }
   
   .stat-card {
@@ -511,17 +645,47 @@
     transform: translateX(4px);
   }
   
-  /* Tooltip custom styling */
-  .tooltip-inner {
-    max-width: 300px;
-    padding: 0.5rem 1rem;
-    text-align: left;
-    background-color: #333;
+  /* Estilos para RTL (árabe) */
+  [dir="rtl"] .timeline {
+    padding-left: 0;
+    padding-right: 24px;
   }
   
-  .bs-tooltip-auto[data-popper-placement^=top] .tooltip-arrow::before,
-  .bs-tooltip-top .tooltip-arrow::before {
-    border-top-color: #333;
+  [dir="rtl"] .timeline-badge {
+    left: auto;
+    right: -32px;
+  }
+  
+  [dir="rtl"] .timeline-content {
+    padding-left: 0;
+    padding-right: 16px;
+  }
+  
+  [dir="rtl"] .list-group-item:hover {
+    transform: translateX(-4px);
+  }
+  
+  [dir="rtl"] .me-3 {
+    margin-right: 0 !important;
+    margin-left: 1rem !important;
+  }
+  
+  [dir="rtl"] .ms-1 {
+    margin-left: 0 !important;
+    margin-right: 0.25rem !important;
+  }
+  
+  [dir="rtl"] .ms-2 {
+    margin-left: 0 !important;
+    margin-right: 0.5rem !important;
+  }
+  
+  /* Language switcher styles */
+  .lang-switcher-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
   }
 </style>
 {% endblock %}
