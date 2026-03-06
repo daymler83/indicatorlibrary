@@ -4,7 +4,10 @@ from openai import OpenAI
 import os
 
 router = APIRouter()
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+#client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+api_key = os.getenv("OPENAI_API_KEY")
+
+client = OpenAI(api_key=api_key) if api_key else None
 
 class PageTranslationRequest(BaseModel):
     html: str

@@ -407,6 +407,59 @@ def dashboard(
 def upload_form(request: Request):
     return templates.TemplateResponse("upload.html", {"request": request})
 
+
+def auto_translate_indicator(db, en_text: IndicatorText):
+    """
+    Takes an English IndicatorText object and creates its Arabic version.
+    """
+
+    # Avoid duplicating translation
+    exists = db.query(IndicatorText).filter(
+        IndicatorText.indicator_id == en_text.indicator_id,
+        IndicatorText.language == "ar"
+    ).first()
+
+    if exists:
+        return exists
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Translate this indicator name into Modern Standard Arabic for an official statistical dashboard."
+                },
+                {"role": "user", "content": en_text.name}
+            ],
+            temperature=0
+        )
+
+        translated_name = response.choices[0].message.content.strip()
+
+        ar_text = IndicatorText(
+            indicator_id=en_text.indicator_id,
+            language="ar",
+            name=translated_name,
+            definition=en_text.definition,
+            formula=en_text.formula,
+            owner=en_text.owner,
+            dimension=en_text.dimension,
+            sector=en_text.sector,
+            is_auto_translated=1,
+            translation_status="auto",
+            source_language="en"
+        )
+
+        db.add(ar_text)
+        db.commit()
+        return ar_text
+
+    except Exception as e:
+        print(f"[ERROR] Arabic translation failed for {en_text.indicator_id}: {e}")
+        return None
+
+
 @app.post("/upload/")
 async def upload_csv(
     request: Request,
@@ -416,13 +469,45 @@ async def upload_csv(
 ):
     contents = await file.read()
     df = pd.read_csv(io.StringIO(contents.decode()))
-
+    '''
     if file_type == "indicators":
         for _, row in df.iterrows():
             if db.query(Indicator).filter_by(id=row["id"]).first():
                 continue
             ind = Indicator(**row.to_dict())
             db.add(ind)
+    '''
+
+    if file_type == "indicators":
+        for _, row in df.iterrows():
+
+            # If indicator exists, skip to avoid duplication
+            if db.query(Indicator).filter_by(id=row["id"]).first():
+                continue
+
+            # 1. Create Indicator
+            ind = Indicator(**row.to_dict())
+            db.add(ind)
+            db.commit()
+
+            # 2. Create English IndicatorText
+            en_text = IndicatorText(
+                indicator_id=ind.id,
+                language="en",
+                name=ind.name,
+                definition=ind.definition,
+                formula=ind.formula,
+                owner=ind.owner,
+                dimension=ind.dimension,
+                sector=ind.sector,
+                translation_status="official",
+                source_language="en"
+            )
+            db.add(en_text)
+            db.commit()
+
+            # 3. Auto-translate to Arabic
+            auto_translate_indicator(db, en_text)
 
     elif file_type == "values":
         if "indicator_id" not in df.columns:
