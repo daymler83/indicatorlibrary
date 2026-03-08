@@ -41,11 +41,14 @@ from routers.permissions import router as permissions_router
 from routers import translate
 from routers import translate_page
 from openai import OpenAI
+import os
 
 # --------------------
 # App setup
 # --------------------
-app = FastAPI()
+#app = FastAPI()
+
+app = FastAPI(root_path="/indicator-library")
 
 # Allow CORS for local frontend
 app.add_middleware(
@@ -710,7 +713,13 @@ def get_trends(request: IndicatorRequest, db: Session = Depends(get_db)):
         })
     return {"series": result}
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+#client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+api_key = os.getenv("OPENAI_API_KEY")
+
+client = None
+if api_key:
+    client = OpenAI(api_key=api_key)
 
 @app.post("/api/prioritize")
 def prioritize_indicators(query: GPTQuery, db: Session = Depends(get_db)):

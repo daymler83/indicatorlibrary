@@ -7,7 +7,13 @@ router = APIRouter()
 #client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 api_key = os.getenv("OPENAI_API_KEY")
 
-client = OpenAI(api_key=api_key) if api_key else None
+#client = OpenAI(api_key=api_key) if api_key else None
+
+api_key = os.getenv("OPENAI_API_KEY")
+
+client = None
+if api_key:
+    client = OpenAI(api_key=api_key)
 
 class PageTranslationRequest(BaseModel):
     html: str
