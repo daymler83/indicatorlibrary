@@ -207,8 +207,10 @@ def get_values_by_indicator(indicator_id: str, db: Session = Depends(get_db)):
     return values
 
 @app.get("/")
-def home():
-    return RedirectResponse("/dashboard")
+#def home():
+#    return RedirectResponse("/dashboard")
+def home(request: Request):
+    return RedirectResponse(request.url_for("dashboard"))
 
 @app.get("/dashboard", response_class=HTMLResponse)
 def dashboard(
@@ -589,7 +591,9 @@ async def upload_csv(
     db.commit()
     
     session_cookie = request.cookies.get("session")
-    response = RedirectResponse(url="/dashboard", status_code=303)
+    #response = RedirectResponse(url="/dashboard", status_code=303)
+    response = RedirectResponse(request.url_for("dashboard"), status_code=303)
+
     if session_cookie:
         response.set_cookie(
             key="session",
@@ -1001,7 +1005,7 @@ def user_management(request: Request, db: Session = Depends(get_db)):
 
 
 @app.post("/users/{user_id}/permissions")
-def update_user_permissions(user_id: int, permissions: List[str] = Form(...), db: Session = Depends(get_db)):
+def update_user_permissions(request: Request,user_id: int, permissions: List[str] = Form(...), db: Session = Depends(get_db)):
     # Remove all current permissions
     db.query(UserPermission).filter(UserPermission.user_id == user_id).delete()
 
@@ -1012,17 +1016,20 @@ def update_user_permissions(user_id: int, permissions: List[str] = Form(...), db
             db.add(UserPermission(user_id=user_id, permission_id=perm.id))
 
     db.commit()
-    return RedirectResponse(url="/user-management", status_code=303)
+    #return RedirectResponse(url="/user-management", status_code=303)
+    return RedirectResponse(request.url_for("user_management"), status_code=303)
+
 
 
 
 @app.post("/delete-user")
-def delete_user(email: str = Form(...), db: Session = Depends(get_db)):
+def delete_user(request: Request, email: str = Form(...), db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == email).first()
     if user:
         db.delete(user)
         db.commit()
-    return RedirectResponse(url="/user-management", status_code=303)
+    #return RedirectResponse(url="/user-management", status_code=303)
+    return RedirectResponse(request.url_for("user_management"), status_code=303)
 
 
 from fastapi import Form
@@ -1032,6 +1039,7 @@ from typing import List
 
 @app.post("/update-permissions")
 def update_permissions(
+    request: Request,
     email: str = Form(...),
     permissions: List[str] = Form([]),
     db: Session = Depends(get_db)
@@ -1048,7 +1056,8 @@ def update_permissions(
         db.add(UserPermission(user_id=user.id, permission_name=perm))
 
     db.commit()
-    return RedirectResponse(url="/user-management", status_code=303)
+    #return RedirectResponse(url="/user-management", status_code=303)
+    return RedirectResponse(request.url_for("user-management"), status_code=303)
 
 
 # Translating english to arabic
