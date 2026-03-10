@@ -206,11 +206,11 @@ def get_values_by_indicator(indicator_id: str, db: Session = Depends(get_db)):
     values = db.query(IndicatorValue).filter(IndicatorValue.indicator_id == indicator_id).all()
     return values
 
+'''
 @app.get("/")
-#def home():
-#    return RedirectResponse("/dashboard")
-def home(request: Request):
-    return RedirectResponse(request.url_for("dashboard"))
+def home():
+    return RedirectResponse("/indicator-library/dashboard")
+'''
 
 @app.get("/dashboard", response_class=HTMLResponse)
 def dashboard(
@@ -591,8 +591,8 @@ async def upload_csv(
     db.commit()
     
     session_cookie = request.cookies.get("session")
-    #response = RedirectResponse(url="/dashboard", status_code=303)
-    response = RedirectResponse(request.url_for("dashboard"), status_code=303)
+    response = RedirectResponse(url="/indicator-library/dashboard", status_code=303)
+    
 
     if session_cookie:
         response.set_cookie(
@@ -1016,8 +1016,8 @@ def update_user_permissions(request: Request,user_id: int, permissions: List[str
             db.add(UserPermission(user_id=user_id, permission_id=perm.id))
 
     db.commit()
-    #return RedirectResponse(url="/user-management", status_code=303)
-    return RedirectResponse(request.url_for("user_management"), status_code=303)
+    return RedirectResponse(url="/indicator-library/user-management", status_code=303)
+
 
 
 
@@ -1028,14 +1028,9 @@ def delete_user(request: Request, email: str = Form(...), db: Session = Depends(
     if user:
         db.delete(user)
         db.commit()
-    #return RedirectResponse(url="/user-management", status_code=303)
-    return RedirectResponse(request.url_for("user_management"), status_code=303)
+    return RedirectResponse(url="/indicator-library/user-management", status_code=303)
+    
 
-
-from fastapi import Form
-from sqlalchemy.orm import Session
-from fastapi.responses import RedirectResponse
-from typing import List
 
 @app.post("/update-permissions")
 def update_permissions(
@@ -1056,8 +1051,8 @@ def update_permissions(
         db.add(UserPermission(user_id=user.id, permission_name=perm))
 
     db.commit()
-    #return RedirectResponse(url="/user-management", status_code=303)
-    return RedirectResponse(request.url_for("user-management"), status_code=303)
+    return RedirectResponse(url="/indicator-library/user-management", status_code=303)
+    
 
 
 # Translating english to arabic
