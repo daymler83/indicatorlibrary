@@ -379,7 +379,7 @@
 
         if (response.ok && data.access_token) {
           localStorage.setItem("access_token", data.access_token);
-          window.location.href = "/dashboard";
+          window.location.href = "/indicator-library/dashboard";
         } else {
           errorEl.textContent = data.detail || "Authentication failed. Please check your credentials.";
           errorEl.style.opacity = 1;
