@@ -788,7 +788,16 @@ def overview(request: Request, db: Session = Depends(get_db)):
             indicators_by_dimension[i.dimension] += 1
     
     # Count database tables
-    table_count = db.execute(text("SELECT count(*) FROM information_schema.tables WHERE table_schema='public'")).scalar()
+    #table_count = db.execute(text("SELECT count(*) FROM information_schema.tables WHERE table_schema='public'")).scalar()
+
+    if db.bind.dialect.name == "sqlite":
+        table_count = db.execute(
+            text("SELECT count(*) FROM sqlite_master WHERE type='table'")
+        ).scalar()
+    else:
+        table_count = db.execute(
+            text("SELECT count(*) FROM information_schema.tables WHERE table_schema='public'")
+        ).scalar()
     
     # Status distribution
     status_counts = db.query(
@@ -900,6 +909,7 @@ def overview(request: Request, db: Session = Depends(get_db)):
     priority_distribution = {priority: count for priority, count in priority_distribution if priority}
     
     # Average update frequency
+    '''
     update_freq_query = """
     SELECT AVG(days_between) as avg_days
     FROM (
@@ -910,7 +920,36 @@ def overview(request: Request, db: Session = Depends(get_db)):
         HAVING COUNT(*) > 1
     ) as freq
     """
+    '''
+
+    if db.bind.dialect.name == "sqlite":
+        update_freq_query = """
+        SELECT AVG(days_between) as avg_days
+        FROM (
+            SELECT indicator_id,
+                (julianday(MAX(imported_at)) - julianday(MIN(imported_at))) / COUNT(*) as days_between
+            FROM indicator_values
+            GROUP BY indicator_id
+            HAVING COUNT(*) > 1
+        ) as freq
+        """
+    else:
+        update_freq_query = """
+        SELECT AVG(days_between) as avg_days
+        FROM (
+            SELECT indicator_id,
+                EXTRACT(DAY FROM (MAX(imported_at) - MIN(imported_at))) / COUNT(*) as days_between
+            FROM indicator_values
+            GROUP BY indicator_id
+            HAVING COUNT(*) > 1
+        ) as freq
+        """
+
+
     avg_update_freq = db.execute(text(update_freq_query)).scalar() or 0
+
+
+    
     
     # Calculate latest year with data
     latest_year_result = db.query(func.max(IndicatorValue.year)).scalar()
@@ -929,11 +968,21 @@ def overview(request: Request, db: Session = Depends(get_db)):
 
 
     # Estimate storage capacity as a function of total values (simulate a 100k row warning threshold)
-
+    '''
     storage_used = db.execute(text("""
         SELECT SUM(pg_total_relation_size(quote_ident(tablename))) as total
         FROM pg_tables WHERE schemaname = 'public'
     """)).scalar() or 0
+    '''
+
+    if db.bind.dialect.name == "sqlite":
+        storage_used = 0
+    else:
+        storage_used = db.execute(text("""
+            SELECT SUM(pg_total_relation_size(quote_ident(tablename)))
+            FROM pg_tables
+            WHERE schemaname = 'public'
+        """)).scalar() or 0
 
     storage_capacity = round(min(100, (storage_used / (500 * 1024 * 1024)) * 100), 1)  # Assume 500MB = full
 
