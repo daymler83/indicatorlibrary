@@ -53,6 +53,20 @@ class IndicatorText(Base):
     indicator = relationship("Indicator", back_populates="texts")
 
 
+class TranslationCache(Base):
+    __tablename__ = "translation_cache"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    cache_key = Column(String(128), unique=True, index=True, nullable=False)
+    translation_type = Column(String(20), nullable=False, default="text")
+    target_lang = Column(String(8), nullable=False)
+    source_text = Column(Text, nullable=False)
+    translated_text = Column(Text, nullable=False)
+    source_model = Column(String(64), nullable=True)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, onupdate=func.now(), server_default=func.now())
+
+
 class IndicatorValue(Base):
     __tablename__ = "indicator_values"
 
@@ -167,11 +181,76 @@ class UserPermission(Base):
     granted_by = Column(Integer, ForeignKey("users.id"), nullable=True)
     granted_at = Column(DateTime, server_default=func.now())
 
+
+class Department(Base):
+    __tablename__ = "departments"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    code = Column(String(50), unique=True, nullable=False, index=True)
+    name = Column(String(200), nullable=False)
+    description = Column(Text, nullable=True)
+    data_context = Column(Text, nullable=True)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, onupdate=func.now(), server_default=func.now())
+
+    views = relationship(
+        "DepartmentView",
+        back_populates="department",
+        cascade="all, delete-orphan"
+    )
+    policy = relationship(
+        "DepartmentPolicy",
+        back_populates="department",
+        uselist=False,
+        cascade="all, delete-orphan"
+    )
+
+
+class DepartmentView(Base):
+    __tablename__ = "department_views"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    department_id = Column(Integer, ForeignKey("departments.id"), index=True, nullable=False)
+    name = Column(String(200), nullable=False)
+    description = Column(Text, nullable=True)
+    request_text = Column(Text, nullable=False)
+    query_spec = Column(Text, nullable=False)
+    query_status = Column(String(20), default="draft")
+    last_result_count = Column(Integer, default=0)
+    last_refreshed_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, onupdate=func.now(), server_default=func.now())
+
+    department = relationship("Department", back_populates="views")
+
+
+class DepartmentPolicy(Base):
+    __tablename__ = "department_policies"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    department_id = Column(Integer, ForeignKey("departments.id"), unique=True, nullable=False, index=True)
+    max_views = Column(Integer, default=10)
+    max_indicators_per_view = Column(Integer, default=3)
+    max_group_by_fields = Column(Integer, default=2)
+    max_filters_per_view = Column(Integer, default=4)
+    max_rows = Column(Integer, default=500)
+    allowed_view_types = Column(Text, nullable=False, default='["trend","comparison","summary","coverage"]')
+    allowed_filters = Column(Text, nullable=False, default='["year_from","year_to","region","province","gender","tracking_status","status","type","priority","sector","dimension"]')
+    allowed_dimensions = Column(Text, nullable=False, default='["year","region","province","gender","sector","dimension"]')
+    allowed_output_columns = Column(Text, nullable=False, default='["indicator_id","indicator_name","year","region","province","gender","value","unit","tracking_status","tracking_message","status","type","priority","dimension","sector","owner","source","record_count","average_value"]')
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, onupdate=func.now(), server_default=func.now())
+
+    department = relationship("Department", back_populates="policy")
+
 DEFAULT_PERMISSIONS = [
     {"name": "view_indicators", "description": "Can view indicators"},
     {"name": "edit_indicators", "description": "Can create and edit indicators"},
     {"name": "upload_values", "description": "Can upload indicator values"},
     {"name": "approve_indicators", "description": "Can approve indicators"},
     {"name": "manage_users", "description": "Can manage users and permissions"},
-    {"name": "view_dashboard", "description": "Can access dashboard features"}
+    {"name": "view_dashboard", "description": "Can access dashboard features"},
+    {"name": "manage_departments", "description": "Can manage departments and AI views"},
+    {"name": "export_department_views", "description": "Can export department views to Excel"},
 ]

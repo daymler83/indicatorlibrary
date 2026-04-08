@@ -1,46 +1,161 @@
 <!DOCTYPE html>
-<html>
+{% set current_lang = request.query_params.get('lang', lang if lang is defined else 'en') if request else (lang if lang is defined else 'en') %}
+<html lang="{{ current_lang }}" dir="{{ 'rtl' if current_lang == 'ar' else 'ltr' }}">
 <head>
-    <title>{{ indicator.name }} Trend</title>
+    <title>{{ indicator.name }} — {{ 'الاتجاه' if current_lang == 'ar' else 'Trend' }} | UNIDO Indicator Library</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f0f4f8;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+            color: white;
+            padding: 1.5rem 0;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(56,142,60,0.2);
+        }
+
+        .page-header img {
+            height: 38px;
+            filter: brightness(0) invert(1);
+            opacity: 0.9;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 14px;
+            padding: 2rem;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .indicator-meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: #E8F5E9;
+            color: #388E3C;
+            padding: 0.3rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            margin-right: 0.5rem;
+        }
+
+        .btn-back {
+            background: white;
+            color: #4CAF50;
+            border: 2px solid #4CAF50;
+            border-radius: 8px;
+            font-weight: 600;
+            padding: 0.5rem 1.25rem;
+            transition: all 0.2s;
+        }
+
+        .btn-back:hover {
+            background: #4CAF50;
+            color: white;
+        }
+    </style>
 </head>
-<body class="bg-light">
-<div class="container mt-5">
-    <h2 class="mb-4 text-center">{{ indicator.name }} - Trend Over Time</h2>
+<body>
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 10;">
+    <div class="btn-group btn-group-sm shadow-sm" role="group">
+        <a class="btn {% if current_lang == 'en' %}btn-success{% else %}btn-outline-success{% endif %}" href="?lang=en">EN</a>
+        <a class="btn {% if current_lang == 'ar' %}btn-success{% else %}btn-outline-success{% endif %}" href="?lang=ar">AR</a>
+    </div>
+</div>
 
-    <canvas id="trendChart" width="600" height="300"></canvas>
+<div class="page-header">
+    <div class="container">
+        <h5 class="mb-0 fw-600"><i class="fas fa-chart-line me-2"></i>Trend Analysis — Indicator Library System</h5>
+    </div>
+</div>
 
-    <div class="text-center mt-4">
-        <a href="/indicator-library/dashboard" class="btn btn-secondary">⬅ Back to Dashboard</a>
+<div class="container">
+    <div class="mb-4">
+        <a href="/indicator-library/dashboard?lang={{ current_lang }}" class="btn btn-back">
+            <i class="fas fa-arrow-left me-2"></i>{{ 'العودة إلى لوحة التحكم' if current_lang == 'ar' else 'Back to Dashboard' }}
+        </a>
+    </div>
+
+    <div class="chart-card">
+        <h4 class="fw-bold mb-1" style="color:#388E3C;">{{ indicator.name }}</h4>
+
+        <div class="indicator-meta mb-4">
+            {% if indicator.sector %}
+            <span><i class="fas fa-industry"></i> {{ indicator.sector }}</span>
+            {% endif %}
+            {% if indicator.dimension %}
+            <span><i class="fas fa-layer-group"></i> {{ indicator.dimension }}</span>
+            {% endif %}
+            {% if indicator.status %}
+            <span><i class="fas fa-circle" style="font-size:0.6rem;"></i> {{ indicator.status }}</span>
+            {% endif %}
+        </div>
+
+        <canvas id="trendChart" style="max-height:380px;"></canvas>
     </div>
 </div>
 
 <script>
     const ctx = document.getElementById('trendChart').getContext('2d');
-    const chart = new Chart(ctx, {
+
+    const gradient = ctx.createLinearGradient(0, 0, 0, 380);
+    gradient.addColorStop(0, 'rgba(76, 175, 80, 0.25)');
+    gradient.addColorStop(1, 'rgba(76, 175, 80, 0)');
+
+    new Chart(ctx, {
         type: 'line',
         data: {
             labels: {{ years | tojson }},
             datasets: [{
                 label: '{{ indicator.name }}',
                 data: {{ data | tojson }},
-                borderColor: 'blue',
-                fill: false,
-                tension: 0.3,
+                borderColor: '#4CAF50',
+                backgroundColor: gradient,
+                fill: true,
+                tension: 0.4,
                 pointRadius: 5,
-                pointHoverRadius: 7
+                pointBackgroundColor: '#4CAF50',
+                pointBorderColor: 'white',
+                pointBorderWidth: 2,
+                pointHoverRadius: 8,
+                borderWidth: 2.5
             }]
         },
         options: {
             responsive: true,
             plugins: {
-                legend: { display: true },
-                tooltip: { mode: 'index', intersect: false }
+                legend: { display: false },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    backgroundColor: '#388E3C',
+                    titleFont: { family: 'Inter', size: 13 },
+                    bodyFont: { family: 'Inter', size: 13 },
+                    padding: 12,
+                    cornerRadius: 8
+                }
             },
             scales: {
-                y: { beginAtZero: true },
-                x: { title: { display: true, text: 'Year' } }
+                y: {
+                    beginAtZero: false,
+                    grid: { color: 'rgba(0,0,0,0.05)' },
+                    ticks: { font: { family: 'Inter', size: 12 } }
+                },
+                x: {
+                    title: { display: true, text: '{{ 'السنة' if current_lang == 'ar' else 'Year' }}', font: { family: 'Inter', size: 12 } },
+                    grid: { display: false },
+                    ticks: { font: { family: 'Inter', size: 12 } }
+                }
             }
         }
     });

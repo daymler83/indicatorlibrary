@@ -1,0 +1,466 @@
+{% extends "base.html" %}
+
+{% set current_lang = request.query_params.get('lang', lang if lang is defined else 'en') if request else (lang if lang is defined else 'en') %}
+
+{% block title %}{{ 'عرض الأقسام' if current_lang == 'ar' else 'Department views' }} - Indicator Library{% endblock %}
+
+{% block content %}
+<style>
+    .dept-hero {
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 48%, #43A047 100%);
+        color: white;
+        border-radius: 24px;
+        box-shadow: 0 12px 30px rgba(46, 125, 50, 0.16);
+    }
+
+    .dept-hero::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+            radial-gradient(circle at top right, rgba(255,255,255,0.12), transparent 32%),
+            linear-gradient(90deg, rgba(255,255,255,0.04), transparent 50%);
+        pointer-events: none;
+    }
+
+    .dept-hero > * {
+        position: relative;
+        z-index: 1;
+    }
+
+    .soft-card {
+        border: 1px solid rgba(67, 160, 71, 0.12);
+        border-radius: 20px;
+        box-shadow: 0 8px 24px rgba(46, 125, 50, 0.06);
+    }
+
+    .dept-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        border-radius: 999px;
+        padding: 0.35rem 0.85rem;
+        background: rgba(255, 255, 255, 0.96);
+        color: #1B5E20;
+        font-weight: 600;
+        font-size: 0.85rem;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .dept-hero .dept-pill {
+        background: rgba(255, 255, 255, 0.96);
+        color: #1B5E20;
+    }
+
+    .view-card {
+        border: 1px solid rgba(67, 160, 71, 0.1);
+        border-radius: 18px;
+        transition: all 0.2s ease;
+    }
+
+    .view-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(46, 125, 50, 0.09);
+    }
+
+    .view-card.active {
+        border-color: rgba(67, 160, 71, 0.45);
+        background: #f6fbf6;
+    }
+
+    .query-box {
+        background: #0f1f12;
+        color: #d6f5d8;
+        border-radius: 16px;
+        padding: 1rem;
+        font-size: 0.85rem;
+        overflow-x: auto;
+        white-space: pre-wrap;
+    }
+
+    .preview-table thead th {
+        background: #eef8ef;
+        color: #245628;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .preview-table tbody td {
+        vertical-align: middle;
+        white-space: nowrap;
+    }
+
+    .policy-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.85rem;
+    }
+
+    .policy-grid .full {
+        grid-column: 1 / -1;
+    }
+
+    .policy-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.3rem 0.65rem;
+        border-radius: 999px;
+        background: #eef8ef;
+        color: #245628;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin: 0 0.35rem 0.35rem 0;
+    }
+</style>
+
+<div class="container-fluid px-4 py-4">
+    <div class="dept-hero p-4 p-lg-5 mb-4">
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3">
+            <div>
+                <p class="mb-0" style="max-width: 760px; color: rgba(255,255,255,0.92);">
+                    {{ 'أنشئ قسماً وعرّف نوع المعلومات التي يعمل معها فريقك عادةً. احفظ عروض قاعدة بيانات قابلة لإعادة الاستخدام.' if current_lang == 'ar' else 'Create a department and describe the information your team usually works with. Save reusable database views.' }}
+                </p>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <div class="dept-pill">
+                    <i class="fas fa-building"></i>
+                    {{ departments|length }} {{ 'أقسام' if current_lang == 'ar' else 'departments' }}
+                </div>
+                <div class="dept-pill">
+                    <i class="fas fa-layer-group"></i>
+                    {{ department_views|length if selected_department else 0 }} {{ 'عروض محفوظة' if current_lang == 'ar' else 'saved views' }}
+                </div>
+                <div class="dept-pill">
+                    <i class="fas fa-table"></i>
+                    {{ indicator_catalog|length }} {{ 'مؤشرات' if current_lang == 'ar' else 'indicators' }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card soft-card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold mb-3">
+                        <i class="fas fa-plus-circle text-success me-2"></i>
+                        {{ 'قسم جديد' if current_lang == 'ar' else 'New Department' }}
+                    </h5>
+                    <form method="post" action="/indicator-library/departments?lang={{ current_lang }}" class="d-grid gap-3">
+                        <div>
+                            <label class="form-label">{{ 'الاسم' if current_lang == 'ar' else 'Name' }}</label>
+                            <input type="text" name="name" class="form-control" placeholder="Employment" required>
+                        </div>
+                        <div>
+                            <label class="form-label">{{ 'الرمز' if current_lang == 'ar' else 'Code' }}</label>
+                            <input type="text" name="code" class="form-control" placeholder="employment">
+                        </div>
+                        <div>
+                            <label class="form-label">{{ 'الوصف' if current_lang == 'ar' else 'Description' }}</label>
+                            <textarea name="description" class="form-control" rows="3" placeholder="{{ 'ما الذي يغطيه هذا القسم؟' if current_lang == 'ar' else 'What does this department cover?' }}"></textarea>
+                        </div>
+                        <div>
+                            <label class="form-label">{{ 'سياق الذكاء الاصطناعي لهذا القسم' if current_lang == 'ar' else 'AI context for this department' }}</label>
+                            <textarea name="data_context" class="form-control" rows="4" placeholder="{{ 'صف البيانات المعتادة التي يعمل معها الفريق.' if current_lang == 'ar' else 'Describe the usual data the team works with.' }}"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save me-1"></i>
+                            {{ 'حفظ القسم' if current_lang == 'ar' else 'Save Department' }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card soft-card">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold mb-3">
+                        <i class="fas fa-list text-success me-2"></i>
+                        {{ 'الأقسام' if current_lang == 'ar' else 'Departments' }}
+                    </h5>
+                    <div class="list-group list-group-flush">
+                        {% for department in departments %}
+                        <a class="list-group-item list-group-item-action border-0 rounded-3 mb-2 {% if selected_department and selected_department.id == department.id %}active bg-success text-white{% endif %}"
+                           href="/indicator-library/departments?lang={{ current_lang }}&department_id={{ department.id }}{% if selected_view %}&view_id={{ selected_view.id }}{% endif %}">
+                            <div class="d-flex justify-content-between align-items-start gap-3">
+                                <div>
+                                    <div class="fw-bold">{{ department.name }}</div>
+                                    <small class="{% if selected_department and selected_department.id == department.id %}text-white-50{% else %}text-muted{% endif %}">
+                                        {{ department.description or ('لا يوجد وصف بعد.' if current_lang == 'ar' else 'No description yet.') }}
+                                    </small>
+                                </div>
+                                <span class="badge bg-white text-success rounded-pill">{{ department.views|length }}</span>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            {% if error %}
+            <div class="alert alert-danger border-0 shadow-sm mb-4">{{ error }}</div>
+            {% endif %}
+            {% if message %}
+            <div class="alert alert-success border-0 shadow-sm mb-4">{{ message }}</div>
+            {% endif %}
+            {% if selected_department %}
+            <div class="card soft-card mb-4">
+                <div class="card-body">
+                    <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+                        <div>
+                            <h4 class="fw-bold mb-1">{{ selected_department.name }}</h4>
+                            <p class="text-muted mb-2">{{ selected_department.description or ('لا يوجد وصف بعد.' if current_lang == 'ar' else 'No description yet.') }}</p>
+                            <div class="dept-pill">
+                                <i class="fas fa-code"></i>
+                                {{ selected_department.code }}
+                            </div>
+                        </div>
+                        <div class="text-lg-end">
+                            <div class="small text-muted">{{ 'سياق الذكاء الاصطناعي للقسم' if current_lang == 'ar' else 'Department AI context' }}</div>
+                            <div class="fw-semibold">{{ selected_department.data_context or ('أضف وصفاً سياقياً لإرشاد استعلامات الذكاء الاصطناعي.' if current_lang == 'ar' else 'Add a context description to guide AI queries.') }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card soft-card mb-4">
+                <div class="card-body">
+                    <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 mb-3">
+                        <div>
+                            <h5 class="card-title fw-bold mb-1">
+                                <i class="fas fa-shield-halved text-success me-2"></i>
+                                {{ 'قواعد القسم' if current_lang == 'ar' else 'Department Rules' }}
+                            </h5>
+                            <p class="text-muted mb-0">{{ 'تتحكم هذه القواعد في ما يمكن للقسم طلبه وكيف يتحقق النظام من صحة العرض.' if current_lang == 'ar' else 'These rules control what the department can request and how the system validates a view.' }}</p>
+                        </div>
+                        <div class="text-lg-end">
+                            <div class="fw-semibold">{{ 'الأنواع المسموحة' if current_lang == 'ar' else 'Allowed types' }}</div>
+                            {% for item in policy_summary.allowed_view_types %}
+                            <span class="policy-chip">{{ item }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <form method="post" action="/indicator-library/departments/{{ selected_department.id }}/policy?lang={{ current_lang }}">
+                        <div class="policy-grid">
+                            <div>
+                                <label class="form-label">{{ 'الحد الأقصى للعروض' if current_lang == 'ar' else 'Max views' }}</label>
+                                <input type="number" min="1" name="max_views" class="form-control" value="{{ selected_policy.max_views if selected_policy else 10 }}" required>
+                            </div>
+                            <div>
+                                <label class="form-label">{{ 'الحد الأقصى للمؤشرات في العرض' if current_lang == 'ar' else 'Max indicators per view' }}</label>
+                                <input type="number" min="1" name="max_indicators_per_view" class="form-control" value="{{ selected_policy.max_indicators_per_view if selected_policy else 3 }}" required>
+                            </div>
+                            <div>
+                                <label class="form-label">{{ 'الحد الأقصى لحقول التجميع' if current_lang == 'ar' else 'Max group-by fields' }}</label>
+                                <input type="number" min="1" name="max_group_by_fields" class="form-control" value="{{ selected_policy.max_group_by_fields if selected_policy else 2 }}" required>
+                            </div>
+                            <div>
+                                <label class="form-label">{{ 'الحد الأقصى للمرشحات في العرض' if current_lang == 'ar' else 'Max filters per view' }}</label>
+                                <input type="number" min="1" name="max_filters_per_view" class="form-control" value="{{ selected_policy.max_filters_per_view if selected_policy else 4 }}" required>
+                            </div>
+                            <div>
+                                <label class="form-label">{{ 'الحد الأقصى للصفوف' if current_lang == 'ar' else 'Max rows' }}</label>
+                                <input type="number" min="1" name="max_rows" class="form-control" value="{{ selected_policy.max_rows if selected_policy else 500 }}" required>
+                            </div>
+                            <div>
+                                <label class="form-label">{{ 'أنواع العروض المسموحة' if current_lang == 'ar' else 'Allowed view types' }}</label>
+                                <input type="text" name="allowed_view_types" class="form-control" value="{{ policy_summary.allowed_view_types|join(', ') if policy_summary else 'trend, comparison, summary' }}">
+                            </div>
+                            <div>
+                                <label class="form-label">{{ 'المرشحات المسموحة' if current_lang == 'ar' else 'Allowed filters' }}</label>
+                                <input type="text" name="allowed_filters" class="form-control" value="{{ policy_summary.allowed_filters|join(', ') if policy_summary else '' }}">
+                            </div>
+                            <div>
+                                <label class="form-label">{{ 'الأبعاد المسموحة' if current_lang == 'ar' else 'Allowed dimensions' }}</label>
+                                <input type="text" name="allowed_dimensions" class="form-control" value="{{ policy_summary.allowed_dimensions|join(', ') if policy_summary else '' }}">
+                            </div>
+                            <div class="full">
+                                <label class="form-label">{{ 'أعمدة الإخراج المسموحة' if current_lang == 'ar' else 'Allowed output columns' }}</label>
+                                <input type="text" name="allowed_output_columns" class="form-control" value="{{ policy_summary.allowed_output_columns|join(', ') if policy_summary else '' }}">
+                            </div>
+                            <div class="full">
+                                <label class="form-label">{{ 'ملاحظات' if current_lang == 'ar' else 'Notes' }}</label>
+                                <textarea name="notes" class="form-control" rows="3">{{ policy_summary.notes if policy_summary else '' }}</textarea>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-outline-success mt-3">
+                            <i class="fas fa-sliders me-1"></i>
+                            {{ 'حفظ القواعد' if current_lang == 'ar' else 'Save Rules' }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card soft-card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold mb-3">
+                        <i class="fas fa-wand-magic-sparkles text-success me-2"></i>
+                        {{ 'إنشاء عرض بالذكاء الاصطناعي' if current_lang == 'ar' else 'Create AI View' }}
+                    </h5>
+                    <form method="post" action="/indicator-library/departments/{{ selected_department.id }}/views?lang={{ current_lang }}" class="row g-3">
+                        <div class="col-md-5">
+                            <label class="form-label">{{ 'اسم العرض' if current_lang == 'ar' else 'View name' }}</label>
+                            <input type="text" name="view_name" class="form-control" placeholder="Employment trend view">
+                        </div>
+                        <div class="col-md-7">
+                            <label class="form-label">{{ 'وصف المعلومات التي تستخدمها عادةً' if current_lang == 'ar' else 'Description of the information you usually use' }}</label>
+                            <input type="text" name="description" class="form-control" placeholder="Optional short summary of this view">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">{{ 'طلب باللغة الطبيعية' if current_lang == 'ar' else 'Natural language request' }}</label>
+                            <textarea name="request_text" class="form-control" rows="4" placeholder="{{ 'اعرض معدل البطالة حسب السنة والمنطقة خلال آخر 5 سنوات.' if current_lang == 'ar' else 'Show unemployment rate by year and region for the last 5 years.' }}"></textarea>
+                            <div class="form-text">{{ 'يُحوَّل هذا الطلب إلى مواصفة استعلام آمنة باستخدام سياق القسم.' if current_lang == 'ar' else 'This request becomes a safe query specification using the department context.' }}</div>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-play me-1"></i>
+                                {{ 'إنشاء العرض' if current_lang == 'ar' else 'Generate View' }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="row g-4 mb-4">
+                <div class="col-md-4">
+                    <div class="card soft-card h-100">
+                        <div class="card-body">
+                            <div class="text-muted small">{{ 'العرض المحدد' if current_lang == 'ar' else 'Selected view' }}</div>
+                            <div class="fs-4 fw-bold">{{ selected_view.name if selected_view else ('لا يوجد' if current_lang == 'ar' else 'None') }}</div>
+                            <div class="text-muted">{{ preview_row_count }} {{ 'صفاً في المعاينة' if current_lang == 'ar' else 'rows in preview' }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card soft-card h-100">
+                        <div class="card-body">
+                            <div class="text-muted small">{{ 'أحدث سنة' if current_lang == 'ar' else 'Latest year' }}</div>
+                            <div class="fs-4 fw-bold">{{ latest_year if latest_year else "N/A" }}</div>
+                            <div class="text-muted">{{ 'يُستخدم كتلميح للمرشحات التي يولدها الذكاء الاصطناعي.' if current_lang == 'ar' else 'Used as a hint for AI-generated filters.' }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card soft-card h-100">
+                        <div class="card-body">
+                            <div class="text-muted small">{{ 'فهرس المؤشرات' if current_lang == 'ar' else 'Indicator catalog' }}</div>
+                            <div class="fs-4 fw-bold">{{ indicator_catalog|length }}</div>
+                            <div class="text-muted">{{ 'المؤشرات المتاحة لاختيار الذكاء الاصطناعي.' if current_lang == 'ar' else 'Available indicators for AI selection.' }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card soft-card mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title fw-bold mb-0">
+                            <i class="fas fa-layer-group text-success me-2"></i>
+                            {{ 'العروض المحفوظة' if current_lang == 'ar' else 'Saved Views' }}
+                        </h5>
+                        <span class="badge bg-success rounded-pill">{{ department_views|length }}</span>
+                    </div>
+                    <div class="d-grid gap-3">
+                        {% for view in department_views %}
+                        <div class="view-card p-3 {% if selected_view and selected_view.id == view.id %}active{% endif %}">
+                            <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+                                <div>
+                                    <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+                                        <h6 class="fw-bold mb-0">{{ view.name }}</h6>
+                                        <span class="badge {% if view.query_status == 'ai' %}bg-primary{% else %}bg-secondary{% endif %} rounded-pill">
+                                            {{ view.query_status }}
+                                        </span>
+                                    </div>
+                                    <p class="text-muted mb-2">{{ view.description or view.request_text }}</p>
+                                    <div class="small text-muted">
+                                        {{ 'تم التحديث' if current_lang == 'ar' else 'Updated' }} {{ view.last_refreshed_at or view.created_at }}
+                                        | {{ view.last_result_count }} {{ 'صفوف' if current_lang == 'ar' else 'rows' }}
+                                    </div>
+                                </div>
+                                <div class="d-flex flex-wrap gap-2 align-items-start">
+                                    <a class="btn btn-outline-success btn-sm" href="/indicator-library/departments?lang={{ current_lang }}&department_id={{ selected_department.id }}&view_id={{ view.id }}">
+                                        {{ 'معاينة' if current_lang == 'ar' else 'Preview' }}
+                                    </a>
+                                    <form method="post" action="/indicator-library/departments/views/{{ view.id }}/refresh?lang={{ current_lang }}" class="d-inline">
+                                        <input type="hidden" name="request_text" value="{{ view.request_text }}">
+                                        <button type="submit" class="btn btn-outline-primary btn-sm">{{ 'تحديث بالذكاء الاصطناعي' if current_lang == 'ar' else 'Refresh AI' }}</button>
+                                    </form>
+                                    <a class="btn btn-success btn-sm" href="/indicator-library/departments/views/{{ view.id }}/export.xlsx?lang={{ current_lang }}">
+                                        {{ 'تصدير' if current_lang == 'ar' else 'Export' }}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% if department_views|length == 0 %}
+                        <div class="alert alert-light border mb-0">
+                            {{ 'لا توجد عروض بعد. استخدم النموذج أعلاه لإنشاء أول عرض.' if current_lang == 'ar' else 'No views yet. Use the form above to create the first one.' }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {% if selected_view %}
+            <div class="card soft-card mb-4">
+                <div class="card-body">
+                    <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 mb-3">
+                        <div>
+                            <h5 class="card-title fw-bold mb-1">
+                                <i class="fas fa-eye text-success me-2"></i>
+                                {{ 'معاينة:' if current_lang == 'ar' else 'Preview:' }} {{ selected_view.name }}
+                            </h5>
+                            <p class="text-muted mb-0">{{ selected_view.description or selected_view.request_text }}</p>
+                        </div>
+                        <a class="btn btn-success align-self-start" href="/indicator-library/departments/views/{{ selected_view.id }}/export.xlsx?lang={{ current_lang }}">
+                            <i class="fas fa-file-excel me-1"></i>
+                            {{ 'تنزيل' if current_lang == 'ar' else 'Download' }}
+                        </a>
+                    </div>
+
+                    <div class="query-box mb-3">{{ selected_view_spec | tojson(indent=2) }}</div>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm preview-table">
+                            <thead>
+                                <tr>
+                                    {% for column in selected_view_columns %}
+                                    <th>{{ column.replace('_', ' ').title() }}</th>
+                                    {% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in selected_view_rows %}
+                                <tr>
+                                    {% for column in selected_view_columns %}
+                                    <td>{{ row[column] }}</td>
+                                    {% endfor %}
+                                </tr>
+                                {% endfor %}
+                                {% if selected_view_rows|length == 0 %}
+                                <tr>
+                                    <td colspan="{{ selected_view_columns|length or 1 }}" class="text-center text-muted py-4">
+                                        {{ 'لا توجد صفوف تطابق هذا العرض.' if current_lang == 'ar' else 'No rows matched this view.' }}
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            {% else %}
+            <div class="alert alert-info border-0 shadow-sm">
+                {{ 'أنشئ أول قسم للبدء في بناء عروض مولدة بالذكاء الاصطناعي.' if current_lang == 'ar' else 'Create your first department to start building AI-generated views.' }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

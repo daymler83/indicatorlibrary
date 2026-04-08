@@ -1,16 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+{% set current_lang = request.query_params.get('lang', lang if lang is defined else 'en') if request else (lang if lang is defined else 'en') %}
+<html lang="{{ current_lang }}" dir="{{ 'rtl' if current_lang == 'ar' else 'ltr' }}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ministry Dashboard - Login</title>
+  <title>{{ 'مكتبة مؤشرات يونيدو - تسجيل الدخول' if current_lang == 'ar' else 'UNIDO Indicator Library - Login' }}</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --primary-dark: #0a2e1a; /* Deep forest green */
+      --primary-dark: #0a2e1a;
       --primary: #4CAF50;
       --primary-light: #2e7d4e;
-      --accent: #a3c585; /* Soft green accent */
+      --accent: #a3c585;
       --accent-dark: #5a8f3c;
       --light: #f8faf7;
       --error: #e53935;
@@ -55,7 +56,7 @@
     
     .login-image {
       flex: 1.2;
-      background: 
+      background:
         linear-gradient(135deg, rgba(76, 175, 80, 0.9) 0%, rgba(46, 125, 78, 0.8) 100%),
         url('https://images.unsplash.com/photo-1605106702734-205df224ecce?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80') center/cover no-repeat;
       position: relative;
@@ -169,15 +170,17 @@
     .login-button {
       width: 100%;
       padding: 15px;
-      background-color: var(--primary);
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
       color: white;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       font-size: 16px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s ease;
       margin-top: 10px;
+      letter-spacing: 0.3px;
+      box-shadow: 0 4px 12px rgba(76,175,80,0.3);
     }
     
     .login-button:hover {
@@ -262,21 +265,70 @@
     }
     
     @media (max-width: 900px) {
+      body {
+        background-image: linear-gradient(135deg, rgba(76,175,80,0.12) 0%, rgba(46,125,78,0.08) 100%);
+        padding: 1rem;
+      }
+
       .login-container {
         flex-direction: column;
+        max-width: 100%;
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(10,46,26,0.15);
       }
-      
+
+      .login-container:hover {
+        transform: none;
+      }
+
       .login-image {
-        padding: 30px;
+        padding: 2rem 1.5rem 1.5rem;
         text-align: center;
+        min-height: unset;
+        border-radius: 20px 20px 0 0;
       }
-      
+
+      .login-image .app-title {
+        font-size: 1.6rem;
+      }
+
       .login-form-container {
-        padding: 40px 30px;
+        padding: 2rem 1.5rem;
       }
-      
+
+      .logo { height: 56px; }
+
       .features-list {
         display: none;
+      }
+
+      .login-form h2 {
+        font-size: 1.5rem;
+      }
+
+      .form-group input, .login-button {
+        font-size: 1rem;
+        padding: 14px 16px;
+      }
+
+      .login-button {
+        padding: 16px;
+        font-size: 1.05rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .login-image {
+        display: none;
+      }
+
+      .login-container {
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(10,46,26,0.12);
+      }
+
+      .login-form-container {
+        padding: 2.5rem 1.5rem;
       }
     }
     
@@ -298,45 +350,52 @@
   </style>
 </head>
 <body>
+  <div class="position-fixed top-0 end-0 p-3" style="z-index: 10;">
+    <div class="btn-group btn-group-sm shadow-sm" role="group">
+      <a class="btn {% if current_lang == 'en' %}btn-success{% else %}btn-outline-success{% endif %}" href="?lang=en">EN</a>
+      <a class="btn {% if current_lang == 'ar' %}btn-success{% else %}btn-outline-success{% endif %}" href="?lang=ar">AR</a>
+    </div>
+  </div>
+
   <div class="login-container">
     <div class="login-image">
       <div class="app-info">
-        <h1 class="app-title">INDICATOR LIBRARY SYSTEM</h1>
+        <h1 class="app-title">{{ 'نظام مكتبة المؤشرات' if current_lang == 'ar' else 'INDICATOR LIBRARY SYSTEM' }}</h1>
       </div>
       
       <ul class="features-list">
-        <li class="feature-item">✓ Track industrial indicators and metrics</li>
-        <li class="feature-item">✓ Visualize sector performance data</li>
-        <li class="feature-item">✓ Generate comprehensive reports</li>
-        <li class="feature-item">✓ Monitor mineral resource statistics</li>
+        <li class="feature-item">{{ '✓ تتبع المؤشرات والمقاييس الصناعية' if current_lang == 'ar' else '✓ Track industrial indicators and metrics' }}</li>
+        <li class="feature-item">{{ '✓ عرض بيانات أداء القطاعات' if current_lang == 'ar' else '✓ Visualize sector performance data' }}</li>
+        <li class="feature-item">{{ '✓ إنشاء تقارير شاملة' if current_lang == 'ar' else '✓ Generate comprehensive reports' }}</li>
+        <li class="feature-item">{{ '✓ متابعة إحصاءات الموارد المعدنية' if current_lang == 'ar' else '✓ Monitor mineral resource statistics' }}</li>
       </ul>
     </div>
     <div class="login-form-container">
       <div class="logo-container">
-        <img src="/indicator-library/static/mim.png" alt="Ministry Logo" class="logo">
+        <img src="/indicator-library/static/logo.png" alt="{{ 'شعار يونيدو' if current_lang == 'ar' else 'UNIDO Logo' }}" class="logo">
       </div>
       
       <form id="loginForm" class="login-form">
-        <h2>Welcome!</h2>
+        <h2>{{ 'مرحباً!' if current_lang == 'ar' else 'Welcome!' }}</h2>
         
         <div class="form-group">
-          <label for="email">Email</label>
-          <input type="text" id="email" required placeholder="your.email@industry.gov.sa">
+          <label for="email">{{ 'البريد الإلكتروني' if current_lang == 'ar' else 'Email' }}</label>
+          <input type="text" id="email" required placeholder="your.email@example.org">
         </div>
         
         <div class="form-group">
-          <label for="password">Password</label>
+          <label for="password">{{ 'كلمة المرور' if current_lang == 'ar' else 'Password' }}</label>
           <input type="password" id="password" required placeholder="••••••••">
         </div>
         
-        <button type="submit" class="login-button">Access Library</button>
+        <button type="submit" class="login-button">{{ 'الدخول إلى المكتبة' if current_lang == 'ar' else 'Access Library' }}</button>
         
         <p id="errorMessage" class="error-message"></p>
       </form>
       
       <div class="footer">
-        <p>Secure access to Ministry data systems</p>
-        <p>© 2025 Ministry of Industry and Mineral Resources</p>
+        <p>{{ 'وصول آمن إلى أنظمة بيانات يونيدو' if current_lang == 'ar' else 'Secure access to UNIDO data systems' }}</p>
+        <p>© 2025 {{ 'منظمة الأمم المتحدة للتنمية الصناعية (يونيدو)' if current_lang == 'ar' else 'United Nations Industrial Development Organization (UNIDO)' }}</p>
       </div>
       
       <div class="version-info">v1.6.1</div>
@@ -352,19 +411,11 @@
       const password = document.getElementById("password").value;
       const errorEl = document.getElementById("errorMessage");
 
-      const isLocalhost = ["localhost", "127.0.0.1"].includes(window.location.hostname);
-      const apiBaseUrl = isLocalhost
-        ? "http://localhost:8000"
-        : "https://indicatorlibrary-87cda05a95ed.herokuapp.com";
-
-
       errorEl.textContent = "";
       errorEl.style.opacity = 0;
 
-      
-
       try {
-        const response = await fetch(`${apiBaseUrl}/auth/login`, {
+        const response = await fetch(`/indicator-library/auth/login`, {
           method: "POST",
           headers: {
             "Content-Type": "application/x-www-form-urlencoded"
@@ -379,13 +430,13 @@
 
         if (response.ok && data.access_token) {
           localStorage.setItem("access_token", data.access_token);
-          window.location.href = "/indicator-library/dashboard";
+          window.location.href = "/indicator-library/dashboard?lang={{ current_lang }}";
         } else {
-          errorEl.textContent = data.detail || "Authentication failed. Please check your credentials.";
+          errorEl.textContent = data.detail || "{{ 'فشل التحقق. يرجى مراجعة بيانات الدخول.' if current_lang == 'ar' else 'Authentication failed. Please check your credentials.' }}";
           errorEl.style.opacity = 1;
         }
       } catch (err) {
-        errorEl.textContent = "Connection error. Please try again later.";
+        errorEl.textContent = "{{ 'خطأ في الاتصال. يرجى المحاولة لاحقاً.' if current_lang == 'ar' else 'Connection error. Please try again later.' }}";
         errorEl.style.opacity = 1;
       }
     });

@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}Overview - Indicator Library{% endblock %}
+{% block title %}{{ 'نظرة عامة' if lang == 'ar' else 'Overview' }} - Indicator Library{% endblock %}
 
 {% block content %}
 
 <!-- Añade esto al principio -->
 <div class="lang-switcher-container">
   <div class="btn-group" role="group">
-    <button type="button" class="btn btn-sm lang-btn active" data-lang="en" onclick="translatePage('en')">EN</button>
-    <button type="button" class="btn btn-sm lang-btn btn-outline-primary" data-lang="ar" onclick="translatePage('ar')">العربية</button>
+    <a class="btn btn-sm lang-btn {% if lang != 'ar' %}active{% else %}btn-outline-primary{% endif %}" href="?lang=en" data-lang="en">EN</a>
+    <a class="btn btn-sm lang-btn {% if lang == 'ar' %}active{% else %}btn-outline-primary{% endif %}" href="?lang=ar" data-lang="ar">العربية</a>
   </div>
 </div>
 
@@ -401,7 +401,7 @@
   
   let dimensionChart;
   const chartColors = [
-    '#4CAF50', '#2196F3', '#FFC107', '#9C27B0', 
+    '#4CAF50', '#2196F3', '#FFC107', '#9C27B0',
     '#607D8B', '#E91E63', '#3F51B5', '#00BCD4',
     '#8BC34A', '#FF5722', '#009688', '#673AB7'
   ];
@@ -434,7 +434,7 @@
       data: {
         labels: labels,
         datasets: [{
-          label: 'Indicators per Dimension',
+          label: '{{ 'المؤشرات حسب البُعد' if lang == 'ar' else 'Indicators per Dimension' }}',
           data: data,
           backgroundColor: backgroundColors,
           borderColor: borderColors,
@@ -455,7 +455,7 @@
           },
           tooltip: {
             callbacks: {
-              label: ctx => ` ${ctx.raw} indicators (${((ctx.raw / {{ total_indicators }}) * 100).toFixed(1)}%)`
+              label: ctx => ` ${ctx.raw} {{ 'مؤشرات' if lang == 'ar' else 'indicators' }} (${((ctx.raw / {{ total_indicators }}) * 100).toFixed(1)}%)`
             }
           },
           datalabels: {
@@ -480,7 +480,7 @@
             },
             title: {
               display: true,
-              text: 'Number of Indicators',
+              text: '{{ 'عدد المؤشرات' if lang == 'ar' else 'Number of Indicators' }}',
               padding: {top: 10, bottom: 10}
             }
           },
@@ -503,7 +503,7 @@
   
   document.addEventListener('DOMContentLoaded', function() {
     // 1. Cargar idioma guardado o usar inglés por defecto
-    const savedLang = localStorage.getItem('lang') || 'en';
+    const savedLang = "{{ lang }}";
     
     // 2. Aplicar traducción inicial
     applyTranslations(savedLang);

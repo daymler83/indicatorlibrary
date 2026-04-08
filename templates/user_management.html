@@ -1,23 +1,24 @@
 {% extends "base.html" %}
 {% block content %}
+{% set current_lang = request.query_params.get('lang', lang if lang is defined else 'en') if request else (lang if lang is defined else 'en') %}
 <div class="container mt-4">
-    <h2>User Management</h2>
+    <h2>{{ 'إدارة المستخدمين' if current_lang == 'ar' else 'User Management' }}</h2>
     <table class="table">
         <thead>
             <tr>
-                <th>Email</th>
-                <th>Is Superuser</th>
-                <th>Permissions</th>
-                <th>Actions</th>
+                <th>{{ 'البريد الإلكتروني' if current_lang == 'ar' else 'Email' }}</th>
+                <th>{{ 'نشط' if current_lang == 'ar' else 'Active' }}</th>
+                <th>{{ 'الصلاحيات' if current_lang == 'ar' else 'Permissions' }}</th>
+                <th>{{ 'الإجراءات' if current_lang == 'ar' else 'Actions' }}</th>
             </tr>
         </thead>
         <tbody>
             {% for user in users %}
             <tr>
                 <td>{{ user.email }}</td>
-                <td>{{ user.is_superuser }}</td>
+                <td>{{ 'نعم' if user.is_active and current_lang == 'ar' else ('لا' if current_lang == 'ar' else ("Yes" if user.is_active else "No")) }}</td>
                 <td>
-                    <form method="post" action="/users/{{ user.id }}/permissions">
+                    <form method="post" action="/indicator-library/users/{{ user.id }}/permissions?lang={{ current_lang }}">
                         <div class="d-flex flex-column">
                             {% for perm in all_permissions %}
                                 <div class="form-check">
@@ -27,14 +28,14 @@
                                     <label class="form-check-label">{{ perm }}</label>
                                 </div>
                             {% endfor %}
-                            <button type="submit" class="btn btn-sm btn-outline-primary mt-1">Save</button>
+                            <button type="submit" class="btn btn-sm btn-outline-primary mt-1">{{ 'حفظ' if current_lang == 'ar' else 'Save' }}</button>
                         </div>
                     </form>
                 </td>
                 <td>
-                    <form method="post" action="/delete-user" style="display:inline;">
+                    <form method="post" action="/indicator-library/delete-user?lang={{ current_lang }}" style="display:inline;">
                         <input type="hidden" name="email" value="{{ user.email }}">
-                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                        <button type="submit" class="btn btn-sm btn-danger">{{ 'حذف' if current_lang == 'ar' else 'Delete' }}</button>
                     </form>
                 </td>
             </tr>
@@ -43,4 +44,3 @@
     </table>
 </div>
 {% endblock %}
-

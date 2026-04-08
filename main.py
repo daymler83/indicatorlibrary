@@ -25,23 +25,21 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from sqlalchemy import text, func, distinct, literal
 from typing import Optional, List, Dict, Tuple
-from fastapi.middleware.cors import CORSMiddleware
-
+from openai import OpenAI
 
 # --------------------
 # Internal modules
 # --------------------
 from db import SessionLocal
 from models import (
-    Indicator, IndicatorText,IndicatorValue, IndicatorHistory,
+    Indicator, IndicatorText, IndicatorValue, IndicatorHistory,
     ValueHistory, User, Permission, UserPermission
 )
 from auth import router as auth_router
 from routers.permissions import router as permissions_router
+from routers.departments import router as departments_router, ensure_reference_data
 from routers import translate
 from routers import translate_page
-from openai import OpenAI
-import os
 
 # --------------------
 # App setup
@@ -62,6 +60,7 @@ app.add_middleware(
 
 app.include_router(auth_router, prefix="/auth")
 app.include_router(permissions_router)
+app.include_router(departments_router)
 app.include_router(translate.router)
 app.include_router(translate_page.router)
 api_times = deque(maxlen=100)
@@ -77,6 +76,15 @@ async def measure_api_time(request: Request, call_next):
     api_times.append(duration)
     return response
 
+
+@app.on_event("startup")
+def seed_reference_data():
+    db = SessionLocal()
+    try:
+        ensure_reference_data(db)
+    finally:
+        db.close()
+
 # --------------------
 # Static files & templates
 # --------------------
@@ -88,7 +96,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # --------------------
 @app.get("/", response_class=HTMLResponse)
 def show_landing(request: Request):
-    return templates.TemplateResponse("landing_page.html", {"request": request})
+    return templates.TemplateResponse("landing_page.html", {"request": request, "lang": get_lang(request)})
 
 
 
@@ -122,6 +130,10 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def get_lang(request: Request) -> str:
+    return "ar" if request.query_params.get("lang", "en").lower() == "ar" else "en"
 
 @app.post("/indicators/")
 def create_indicator(indicator_data: IndicatorCreate, db: Session = Depends(get_db)):
@@ -295,21 +307,9 @@ def dashboard(
         
     filtered_indicator_values = indicator_values_query.all()
 
-    # Only keep indicators that match filtered values
-
-    if not indicator_id:
-        filtered_ids = {val.indicator_id for val in filtered_indicator_values}
-        #indicators = [ind for ind in indicators if ind.id in filtered_ids]
-        indicators = [ind for ind in indicators if ind["id"] in filtered_ids]
-        
-
-
-    # Build a set of filtered indicator_ids
+    # Keep the indicator library driven by metadata filters only.
+    # Tracking filters are applied separately to the tracking panel.
     filtered_ids = {val.indicator_id for val in filtered_indicator_values}
-
-    # Filter the indicator list to only those that match filtered values
-    #indicators = [ind for ind in indicators if ind.id in filtered_ids]
-    indicators = [ind for ind in indicators if ind["id"] in filtered_ids]
 
     # Group by dimension for accordion (using filtered indicators)
 
@@ -355,16 +355,8 @@ def dashboard(
         .all()
     )
 
-    #sectors = list({ind.sector for ind in all_indicators if ind.sector})
-    #statuses = list({ind.status for ind in all_indicators})
-    #dimensions = list({ind.dimension for ind in all_indicators if ind.dimension})
-    #types = list({ind.type for ind in all_indicators if ind.type})
-    #priorities = list({ind.priority for ind in all_indicators if ind.priority})
-
-    #sectors = list({text.sector for ind, _ in all_indicators if text.sector})
     sectors = sorted({txt.sector for _, txt in all_indicators if txt.sector})
     statuses = list({ind.status for ind, _ in all_indicators if ind.status})
-    #dimensions = list({text.dimension for ind, _ in all_indicators if text.dimension})
     dimensions = sorted({txt.dimension for _, txt in all_indicators if txt.dimension})
     types = list({ind.type for ind, _ in all_indicators if ind.type})
     priorities = list({ind.priority for ind, _ in all_indicators if ind.priority})
@@ -410,13 +402,15 @@ def dashboard(
 
 @app.get("/upload", response_class=HTMLResponse)
 def upload_form(request: Request):
-    return templates.TemplateResponse("upload.html", {"request": request})
+    return templates.TemplateResponse("upload.html", {"request": request, "lang": get_lang(request)})
 
 
 def auto_translate_indicator(db, en_text: IndicatorText):
     """
     Takes an English IndicatorText object and creates its Arabic version.
     """
+    if not client:
+        return None
 
     # Avoid duplicating translation
     exists = db.query(IndicatorText).filter(
@@ -591,7 +585,7 @@ async def upload_csv(
     db.commit()
     
     session_cookie = request.cookies.get("session")
-    response = RedirectResponse(url="/indicator-library/dashboard", status_code=303)
+    response = RedirectResponse(url=f"/indicator-library/dashboard?lang={get_lang(request)}", status_code=303)
     
 
     if session_cookie:
@@ -663,6 +657,7 @@ def tracking_dashboard(
         "selected_region": region,
         "selected_province": province,
         "selected_gender": gender,
+        "lang": get_lang(request),
     })
 
 
@@ -686,7 +681,8 @@ def show_trend(indicator_id: str, request: Request, db: Session = Depends(get_db
         "request": request,
         "indicator": indicator,
         "years": years,
-        "data": data
+        "data": data,
+        "lang": get_lang(request),
     })
 
 class IndicatorRequest(BaseModel):
@@ -1026,7 +1022,8 @@ def overview(request: Request, db: Session = Depends(get_db)):
         "total_inactive_indicators": status_distribution.get('Inactive', 0),
         "top_dimensions": sorted(indicators_by_dimension.items(), key=lambda x: x[1], reverse=True)[:5],
         "latest_year": latest_year,
-        "system_status": system_status
+        "system_status": system_status,
+        "lang": get_lang(request),
     })
 
 # Handling user permissions
@@ -1048,7 +1045,8 @@ def user_management(request: Request, db: Session = Depends(get_db)):
         "request": request,
         "users": users,
         "all_permissions": all_permissions,
-        "user_permissions": user_permissions
+        "user_permissions": user_permissions,
+        "lang": get_lang(request),
     })
 
 
@@ -1065,7 +1063,7 @@ def update_user_permissions(request: Request,user_id: int, permissions: List[str
             db.add(UserPermission(user_id=user_id, permission_id=perm.id))
 
     db.commit()
-    return RedirectResponse(url="/indicator-library/user-management", status_code=303)
+    return RedirectResponse(url=f"/indicator-library/user-management?lang={get_lang(request)}", status_code=303)
 
 
 
@@ -1077,7 +1075,7 @@ def delete_user(request: Request, email: str = Form(...), db: Session = Depends(
     if user:
         db.delete(user)
         db.commit()
-    return RedirectResponse(url="/indicator-library/user-management", status_code=303)
+    return RedirectResponse(url=f"/indicator-library/user-management?lang={get_lang(request)}", status_code=303)
     
 
 
@@ -1097,10 +1095,12 @@ def update_permissions(
 
     # Add new permissions
     for perm in permissions:
-        db.add(UserPermission(user_id=user.id, permission_name=perm))
+        permission = db.query(Permission).filter(Permission.name == perm).first()
+        if permission:
+            db.add(UserPermission(user_id=user.id, permission_id=permission.id))
 
     db.commit()
-    return RedirectResponse(url="/indicator-library/user-management", status_code=303)
+    return RedirectResponse(url=f"/indicator-library/user-management?lang={get_lang(request)}", status_code=303)
     
 
 

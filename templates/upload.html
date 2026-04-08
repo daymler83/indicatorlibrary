@@ -1,28 +1,63 @@
 <!DOCTYPE html>
-<html>
+{% set current_lang = request.query_params.get('lang', lang if lang is defined else 'en') if request else (lang if lang is defined else 'en') %}
+<html lang="{{ current_lang }}" dir="{{ 'rtl' if current_lang == 'ar' else 'ltr' }}">
 <head>
-    <title>Upload CSV</title>
+    <meta charset="UTF-8">
+    <title>{{ 'رفع CSV' if current_lang == 'ar' else 'Upload CSV' }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(180deg, #f4faf4 0%, #eef6ee 100%);
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+        }
+
+        .upload-shell {
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 2rem 1rem;
+        }
+
+        .upload-card {
+            width: min(560px, 100%);
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 18px 40px rgba(46, 125, 50, 0.12);
+            border: 1px solid rgba(67, 160, 71, 0.1);
+        }
+    </style>
 </head>
-<body class="bg-light">
-<div class="container mt-5">
-    <h2 class="mb-4 text-center">📤 Upload CSV File</h2>
+<body>
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 10;">
+    <div class="btn-group btn-group-sm shadow-sm" role="group">
+        <a class="btn {% if current_lang == 'en' %}btn-success{% else %}btn-outline-success{% endif %}" href="?lang=en">EN</a>
+        <a class="btn {% if current_lang == 'ar' %}btn-success{% else %}btn-outline-success{% endif %}" href="?lang=ar">AR</a>
+    </div>
+</div>
+<div class="upload-shell">
+    <div class="upload-card p-4 p-md-5">
+        <h2 class="mb-4 text-center fw-bold text-success">
+            {{ '📤 رفع ملف CSV' if current_lang == 'ar' else '📤 Upload CSV File' }}
+        </h2>
 
-    <form action="/upload/" method="post" enctype="multipart/form-data" class="border p-4 bg-white rounded shadow-sm">
-        <div class="mb-3">
-            <label for="file_type" class="form-label">What are you uploading?</label>
-            <select name="file_type" id="file_type" class="form-select">
-                <option value="indicators">Indicators</option>
-                <option value="values">Indicator Values</option>
-            </select>
-        </div>
+        <form action="/indicator-library/upload/?lang={{ current_lang }}" method="post" enctype="multipart/form-data" class="d-grid gap-3">
+            <div>
+                <label for="file_type" class="form-label">{{ 'ما الذي ترفعه؟' if current_lang == 'ar' else 'What are you uploading?' }}</label>
+                <select name="file_type" id="file_type" class="form-select">
+                    <option value="indicators">{{ 'المؤشرات' if current_lang == 'ar' else 'Indicators' }}</option>
+                    <option value="values">{{ 'قيم المؤشرات' if current_lang == 'ar' else 'Indicator Values' }}</option>
+                </select>
+            </div>
 
-        <div class="mb-3">
-            <input class="form-control" type="file" name="file" accept=".csv" required>
-        </div>
+            <div>
+                <input class="form-control" type="file" name="file" accept=".csv" required>
+            </div>
 
-        <button type="submit" class="btn btn-primary w-100">Upload CSV</button>
-    </form>
+            <button type="submit" class="btn btn-success w-100">
+                {{ 'رفع CSV' if current_lang == 'ar' else 'Upload CSV' }}
+            </button>
+        </form>
+    </div>
 </div>
 </body>
 </html>
