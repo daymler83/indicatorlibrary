@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ 'مكتبة مؤشرات يونيدو - تسجيل الدخول' if current_lang == 'ar' else 'UNIDO Indicator Library - Login' }}</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --primary-dark: #0a2e1a;
@@ -26,7 +26,7 @@
     }
     
     body {
-      font-family: 'Inter', sans-serif;
+      font-family: 'Montserrat', 'Inter', sans-serif;
       background-color: var(--light);
       color: var(--text);
       line-height: 1.6;
@@ -72,13 +72,14 @@
     
 
   .app-info h1 {
+    font-family: 'Montserrat', 'Inter', sans-serif;
     font-size: 28px;
-    font-weight: 700;
-    color: white;
+    font-weight: 600;
+    color: #F5F7F2;
     margin-bottom: 15px;
     line-height: 1.3;
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
-    letter-spacing: 0.5px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    letter-spacing: 0.2px;
   }
 
   .features-list li {
@@ -109,19 +110,47 @@
     }
     
     .logo-container {
-      text-align: center;
-      margin-bottom: 40px;
+      margin-bottom: 34px;
     }
-    
-    .logo {
+
+    .brand-lockup {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+    }
+
+    .brand-symbol-wrap {
+      width: 78px;
       height: 70px;
-      width: auto;
-      margin-bottom: 15px;
-      transition: transform 0.3s ease;
+      overflow: hidden;
+      flex: 0 0 auto;
     }
-    
-    .logo:hover {
-      transform: scale(1.05);
+
+    .brand-symbol {
+      width: 246px;
+      height: 70px;
+      object-fit: cover;
+      object-position: left center;
+      display: block;
+      filter: contrast(1.05);
+    }
+
+    .brand-text {
+      text-align: left;
+      line-height: 1.15;
+      color: #283231;
+      font-weight: 600;
+      letter-spacing: 0.1px;
+      font-size: 15px;
+    }
+
+    html[dir="rtl"] .brand-lockup {
+      flex-direction: row-reverse;
+    }
+
+    html[dir="rtl"] .brand-text {
+      text-align: right;
     }
     
     .login-form h2 {
@@ -216,6 +245,46 @@
       color: var(--text-light);
     }
 
+    .lang-switcher {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      display: inline-flex;
+      gap: 6px;
+      padding: 4px;
+      border-radius: 999px;
+      background: #f1f5f1;
+      border: 1px solid #dce5dc;
+      z-index: 2;
+    }
+
+    html[dir="rtl"] .lang-switcher {
+      right: auto;
+      left: 18px;
+    }
+
+    .lang-btn {
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      color: var(--primary-light);
+      padding: 5px 10px;
+      border-radius: 999px;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+    }
+
+    .lang-btn:hover {
+      background: #e6f1e8;
+    }
+
+    .lang-btn.active {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: #fff;
+      box-shadow: 0 3px 10px rgba(46, 125, 78, 0.2);
+    }
+
 
     .app-title {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -296,7 +365,29 @@
         padding: 2rem 1.5rem;
       }
 
-      .logo { height: 56px; }
+      .lang-switcher {
+        top: 12px;
+        right: 12px;
+      }
+
+      html[dir="rtl"] .lang-switcher {
+        right: auto;
+        left: 12px;
+      }
+
+      .brand-symbol-wrap {
+        width: 66px;
+        height: 58px;
+      }
+
+      .brand-symbol {
+        width: 204px;
+        height: 58px;
+      }
+
+      .brand-text {
+        font-size: 13px;
+      }
 
       .features-list {
         display: none;
@@ -350,13 +441,6 @@
   </style>
 </head>
 <body>
-  <div class="position-fixed top-0 end-0 p-3" style="z-index: 10;">
-    <div class="btn-group btn-group-sm shadow-sm" role="group">
-      <a class="btn {% if current_lang == 'en' %}btn-success{% else %}btn-outline-success{% endif %}" href="?lang=en">EN</a>
-      <a class="btn {% if current_lang == 'ar' %}btn-success{% else %}btn-outline-success{% endif %}" href="?lang=ar">AR</a>
-    </div>
-  </div>
-
   <div class="login-container">
     <div class="login-image">
       <div class="app-info">
@@ -371,8 +455,23 @@
       </ul>
     </div>
     <div class="login-form-container">
+      <div class="lang-switcher" role="group" aria-label="Language switcher">
+        <a class="lang-btn {% if current_lang == 'en' %}active{% endif %}" href="?lang=en">EN</a>
+        <a class="lang-btn {% if current_lang == 'ar' %}active{% endif %}" href="?lang=ar">AR</a>
+      </div>
       <div class="logo-container">
-        <img src="/indicator-library/static/logo.png" alt="{{ 'شعار يونيدو' if current_lang == 'ar' else 'UNIDO Logo' }}" class="logo">
+        <div class="brand-lockup">
+          <div class="brand-symbol-wrap">
+            <img src="static/logo.png" alt="{{ 'شعار يونيدو' if current_lang == 'ar' else 'UNIDO Logo' }}" class="brand-symbol">
+          </div>
+          <div class="brand-text">
+            {% if current_lang == 'ar' %}
+            وزارة الصناعة<br>والثروة المعدنية
+            {% else %}
+            Ministry of Industry<br>&amp; Mineral Resources
+            {% endif %}
+          </div>
+        </div>
       </div>
       
       <form id="loginForm" class="login-form">
@@ -415,7 +514,7 @@
       errorEl.style.opacity = 0;
 
       try {
-        const response = await fetch(`/indicator-library/auth/login`, {
+        const response = await fetch(`auth/login`, {
           method: "POST",
           headers: {
             "Content-Type": "application/x-www-form-urlencoded"
@@ -430,7 +529,7 @@
 
         if (response.ok && data.access_token) {
           localStorage.setItem("access_token", data.access_token);
-          window.location.href = "/indicator-library/dashboard?lang={{ current_lang }}";
+          window.location.href = "dashboard?lang={{ current_lang }}";
         } else {
           errorEl.textContent = data.detail || "{{ 'فشل التحقق. يرجى مراجعة بيانات الدخول.' if current_lang == 'ar' else 'Authentication failed. Please check your credentials.' }}";
           errorEl.style.opacity = 1;

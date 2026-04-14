@@ -45,8 +45,8 @@ from routers import translate_page
 # App setup
 # --------------------
 #app = FastAPI()
-
-app = FastAPI(root_path="/indicator-library")
+APP_ROOT_PATH = "/indicator-library"
+app = FastAPI(root_path=APP_ROOT_PATH)
 
 # Allow CORS for local frontend
 app.add_middleware(
@@ -75,6 +75,19 @@ async def measure_api_time(request: Request, call_next):
     duration = time.perf_counter() - start
     api_times.append(duration)
     return response
+
+
+@app.middleware("http")
+async def normalize_indicator_library_prefix(request: Request, call_next):
+    """
+    Allow both direct local access (/indicator-library/...) and proxied access
+    where NGINX strips the prefix before forwarding.
+    """
+    path = request.scope.get("path", "")
+    if path == APP_ROOT_PATH or path.startswith(f"{APP_ROOT_PATH}/"):
+        normalized = path[len(APP_ROOT_PATH):] or "/"
+        request.scope["path"] = normalized
+    return await call_next(request)
 
 
 @app.on_event("startup")

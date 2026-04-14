@@ -204,6 +204,31 @@
             margin-left: auto;
         }
 
+        .contact-panel {
+            display: none;
+            margin: 0.3rem 0.85rem 0.15rem 2.2rem;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: rgba(255,255,255,0.92);
+            font-size: 0.76rem;
+            align-items: center;
+            width: auto;
+            max-width: none;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .contact-panel.show {
+            display: inline-flex;
+        }
+
+        [dir="rtl"] .contact-panel {
+            margin: 0.35rem 2.2rem 0.2rem 0.85rem;
+            text-align: right;
+        }
+
         /* ── Header ── */
         .dashboard-header {
             background: linear-gradient(120deg, #2E7D32 0%, #43A047 60%, #66BB6A 100%);
@@ -813,10 +838,11 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#">
+                <button id="contactInfoBtn" type="button" class="nav-link" aria-expanded="false" aria-controls="contactPanel">
                     <span class="nav-icon"><i class="fas fa-envelope"></i></span>
                     <span class="nav-text" data-translate="contact-nav">Contact</span>
-                </a>
+                </button>
+                <div id="contactPanel" class="contact-panel">stat@unido.org</div>
             </li>
         </ul>
 
@@ -1805,6 +1831,15 @@
                 sessionStorage.removeItem("access_token");
                 window.location.href = "/indicator-library/";
             });
+
+            const contactBtn = document.getElementById("contactInfoBtn");
+            const contactPanel = document.getElementById("contactPanel");
+            if (contactBtn && contactPanel) {
+                contactBtn.addEventListener("click", function () {
+                    const isOpen = contactPanel.classList.toggle("show");
+                    contactBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+                });
+            }
         });
 
         // ── Sidebar backdrop ──
